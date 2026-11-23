@@ -17,8 +17,8 @@ Le service worker et l'installation PWA exigent HTTPS ou `localhost`.
 ## Déployer sur GitHub Pages
 
 1. Créez un dépôt GitHub et envoyez-y tout le contenu de ce dossier (branche `main`).
-2. Dans **Settings > Pages**, choisissez **Source : GitHub Actions**.
-3. Le workflow `.github/workflows/pages.yml` lance les tests puis publie le site. L'adresse est de la forme `https://<utilisateur>.github.io/<depot>/`.
+2. Tous les fichiers sont à la racine (aucun sous-dossier) : `index.html` doit être au même niveau que `style.css`, `app.js` et les icônes.
+3. Dans **Settings > Pages**, choisissez **Deploy from a branch**, branche `main`, dossier `/ (root)`. L'adresse est de la forme `https://<utilisateur>.github.io/<depot>/`.
 
 Aucun autre réglage n'est nécessaire : tous les chemins sont relatifs, donc le site fonctionne dans un sous-dossier.
 
@@ -30,14 +30,14 @@ Aucun autre réglage n'est nécessaire : tous les chemins sont relatifs, donc le
 ## Limites à connaître
 
 ### Où se trouve le numéro du vendeur
-Par défaut (`supabase.url` renseigné dans `js/config.js`), le numéro est stocké dans Supabase et **n'est pas dans le lien**, qui ne contient qu'un identifiant aléatoire de 12 caractères (`#/pay?i=...`). Le numéro n'est renvoyé au navigateur du client qu'au clic sur « Confirmer et continuer », car le code USSD en a besoin : le client peut donc toujours le voir en copiant le code, ce qu'aucune solution ne peut empêcher. La page client et l'écran de secours l'affichent masqué.
+Par défaut (`supabase.url` renseigné dans `config.js`), le numéro est stocké dans Supabase et **n'est pas dans le lien**, qui ne contient qu'un identifiant aléatoire de 12 caractères (`#/pay?i=...`). Le numéro n'est renvoyé au navigateur du client qu'au clic sur « Confirmer et continuer », car le code USSD en a besoin : le client peut donc toujours le voir en copiant le code, ce qu'aucune solution ne peut empêcher. La page client et l'écran de secours l'affichent masqué.
 
 Mise en place (déjà appliquée au projet Supabase BOUTIKI) :
 
 - schéma privé `omdirect`, table `links` fermée par RLS, sans aucun accès direct pour `anon` ou `authenticated` ;
 - trois fonctions RPC dans `public` : `omdirect_create_link` (retourne l'identifiant), `omdirect_get_link` (nom, montant, description, jamais le numéro) et `omdirect_get_number` ;
-- le vendeur choisit la durée de validité à la création (1 heure, 24 heures, 7 jours ou 30 jours, réglable dans `js/config.js`, 720 heures maximum côté base) ; un lien expiré affiche « Lien de paiement invalide » ;
-- la clé publishable de `js/config.js` est faite pour être publique.
+- le vendeur choisit la durée de validité à la création (1 heure, 24 heures, 7 jours ou 30 jours, réglable dans `config.js`, 720 heures maximum côté base) ; un lien expiré affiche « Lien de paiement invalide » ;
+- la clé publishable de `config.js` est faite pour être publique.
 
 Limites : n'importe qui peut créer des liens (pas de compte vendeur, par choix du projet), il n'y a pas de limitation de débit, et un identifiant ne se devine pas mais se partage. Pour supprimer les liens expirés : `delete from omdirect.links where expires_at < now();`.
 
@@ -52,7 +52,7 @@ Les codes suivants viennent du cahier des charges et **n'ont pas pu être testé
 - obtention du CAUU : `#144#77#`
 - transfert : `#144#11*NUMERO*MONTANT*1*CAUU*NUMERO#`
 
-Rien n'est affirmé comme fonctionnel. Avant toute mise en service : vérifiez les codes auprès d'Orange Money, testez avec un petit montant sur de vrais comptes, puis modifiez `js/config.js` (`cauuRequest`, `transferTemplate`, `cauuPattern`) si nécessaire et passez `ussd.verified` à `true`. Tant que ce champ vaut `false`, un avertissement s'affiche côté vendeur.
+Rien n'est affirmé comme fonctionnel. Avant toute mise en service : vérifiez les codes auprès d'Orange Money, testez avec un petit montant sur de vrais comptes, puis modifiez `config.js` (`cauuRequest`, `transferTemplate`, `cauuPattern`) si nécessaire et passez `ussd.verified` à `true`. Tant que ce champ vaut `false`, un avertissement s'affiche côté vendeur.
 
 L'ouverture automatique repose sur un lien `tel:` avec `#` encodé en `%23`. Son comportement dépend du téléphone et du navigateur, d'où l'écran de secours.
 
@@ -69,20 +69,19 @@ L'ouverture automatique repose sur un lien `tel:` avec `#` encodé en `%23`. Son
 index.html              page unique (vues vendeur, client, erreur)
 manifest.webmanifest    configuration PWA
 sw.js                   service worker (fonctionne hors ligne)
-css/style.css           design
-js/config.js            configuration : devise, limites, codes USSD
-js/link.js              validation, encodage et décodage des liens
-js/ussd.js              préparation du code USSD
-js/api.js               appels Supabase (RPC)
-js/app.js               interface et parcours
-icons/                  icônes PWA (SVG, PNG 192 et 512, maskable)
-tests/                  tests Node
-.github/workflows/      déploiement GitHub Pages
+style.css           design
+config.js            configuration : devise, limites, codes USSD
+link.js              validation, encodage et décodage des liens
+ussd.js              préparation du code USSD
+api.js               appels Supabase (RPC)
+app.js               interface et parcours
+icon.svg, icon-*.png    icônes PWA (SVG, PNG 192 et 512, maskable)
+om-direct.test.mjs      tests Node (npm test)
 ```
 
 ## Personnalisation
 
-Tout se règle dans `js/config.js` : indicatif pays (`223` par défaut), longueur des numéros, montant maximal, longueurs de texte, codes USSD. Pour changer la couleur, modifiez les variables en haut de `css/style.css`.
+Tout se règle dans `config.js` : indicatif pays (`223` par défaut), longueur des numéros, montant maximal, longueurs de texte, codes USSD. Pour changer la couleur, modifiez les variables en haut de `style.css`.
 
 ## Licence
 

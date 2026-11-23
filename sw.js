@@ -1,9 +1,9 @@
 // Service worker : réseau d'abord, cache en secours (l'application s'ouvre hors ligne).
 const VERSION = 'om-direct-v1';
 const ASSETS = [
-  './', './index.html', './manifest.webmanifest', './css/style.css',
-  './js/app.js', './js/api.js', './js/config.js', './js/link.js', './js/ussd.js',
-  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
+  './', './index.html', './manifest.webmanifest', './style.css',
+  './app.js', './api.js', './config.js', './link.js', './ussd.js',
+  './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (e) => {

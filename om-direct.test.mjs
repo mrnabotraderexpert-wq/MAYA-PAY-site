@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePayment, encodePayment, decodePayment, buildLink, parseHash, normalizeNumber } from '../js/link.js';
-import { buildTransferCode, toTelUri, displayCode } from '../js/ussd.js';
+import { validatePayment, encodePayment, decodePayment, buildLink, parseHash, normalizeNumber } from './link.js';
+import { buildTransferCode, toTelUri, displayCode } from './ussd.js';
 
 test('numéro : indicatif et séparateurs retirés', () => {
   assert.equal(normalizeNumber('+223 76 12 34 56'), '76123456');
