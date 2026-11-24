@@ -1,87 +1,63 @@
-# OM Direct
+# MAYA-PAY
 
-Liens de paiement Orange Money directs. Le vendeur génère un lien et l'envoie à son client par WhatsApp ou SMS. Le client paie depuis son compte Orange Money vers celui du vendeur. **OM Direct ne reçoit jamais l'argent.**
+**MAYA-PAY n'est pas un agrégateur de paiement.** C'est un simple raccourci de lien qui facilite les paiements mobiles (Orange Money, Moov Money). MAYA-PAY ne détient ni ne stocke aucun argent et ne garantit pas les produits ou services du vendeur. **Faites toujours un premier test avec un petit montant.**
 
-Application statique en HTML, CSS et JavaScript natif, sans dépendance à installer, ni compte, ni portefeuille. Seul le numéro du vendeur est conservé côté Supabase (voir plus bas). PWA installable sur Android.
+Application web (PWA) **réservée au téléphone**. Le vendeur crée un lien et l'envoie à son client par WhatsApp ou SMS. Le client paie de compte à compte.
 
-## Lancer en local
+## Parcours
 
-```bash
-python3 -m http.server 8080      # ou : npm start
-# ouvrir http://localhost:8080
-npm test                          # tests (Node 20 ou plus récent)
-```
+- **Vendeur** : nom commercial, numéro Orange Money et/ou Moov Money (au moins un), montant, description, durée de validité. Il obtient un lien (copie, WhatsApp, SMS, partage) et un bouton **Suivre le paiement**. Les liens récents restent sur son téléphone.
+- **Client** : un bouton **Payer avec …** par opérateur,  parmi les opérateurs pour lesquels le vendeur a saisi un numéro (**Orange Money** et/ou **Moov Money**), puis le composeur du téléphone s'ouvre avec le code prêt. L'opérateur demande ensuite le code PIN.
+- **Session de 2 minutes** : un compte à rebours s'affiche. À zéro, le code est effacé et la session se ferme (la page tente de se fermer ; sinon elle affiche « Session fermée »). Si l'opération n'est pas terminée, le client la rouvre.
+- **Confirmation** : le client colle le SMS de confirmation Orange/Moov. Le serveur le lit, vérifie le montant et le bénéficiaire, répond au client (Confirmé, Transmis au vendeur, Non confirmé) et le message apparaît dans le **suivi du vendeur** (rafraîchi toutes les 10 secondes).
+- **Ordinateur** : un écran demande d'ouvrir MAYA-PAY sur un téléphone.
 
-Le service worker et l'installation PWA exigent HTTPS ou `localhost`.
+## Masquage du numéro et des formules
 
-## Déployer sur GitHub Pages
+Le site (GitHub Pages) ne contient **ni numéro de vendeur, ni formule USSD**. Tout vit dans Supabase (schéma privé `mayapay`, fermé par RLS) :
 
-1. Créez un dépôt GitHub et envoyez-y tout le contenu de ce dossier (branche `main`).
-2. Tous les fichiers sont à la racine (aucun sous-dossier) : `index.html` doit être au même niveau que `style.css`, `app.js` et les icônes.
-3. Dans **Settings > Pages**, choisissez **Deploy from a branch**, branche `main`, dossier `/ (root)`. L'adresse est de la forme `https://<utilisateur>.github.io/<depot>/`.
+- le lien ne contient qu'un identifiant aléatoire de 12 caractères ;
+- le numéro n'est jamais renvoyé au navigateur, **sauf à l'ouverture d'une session** : le serveur remet alors le code complet, valable 2 minutes, limité à 20 ouvertures par heure et par lien ;
+- les formules sont dans la table `mayapay.operators` (modifiables dans Supabase sans toucher au site) ;
+- le code n'est jamais écrit dans la page, l'URL, le stockage ni le presse-papiers : il est passé au composeur puis effacé.
 
-Aucun autre réglage n'est nécessaire : tous les chemins sont relatifs, donc le site fonctionne dans un sous-dossier.
+**Limite à connaître** : le composeur du téléphone affiche le code composé, donc le numéro. Aucun système USSD ne peut l'éviter. Un site web ne peut pas non plus lancer l'appel lui-même ni choisir la SIM : le client appuie sur appeler, et un téléphone à deux SIM demande laquelle utiliser.
 
-## Fonctionnement
+## Mise en place
 
-- **Vendeur** : nom commercial, numéro Orange Money, montant, description. L'application produit un lien (copie, WhatsApp, SMS, partage natif) et permet d'enchaîner un nouveau lien en changeant seulement le montant. Le nom et le numéro sont mémorisés dans le navigateur de l'appareil (bouton pour les effacer).
-- **Client** : page avec le nom du vendeur, le montant et la description, puis un parcours en trois temps : avertissement et case de vérification, saisie du CAUU, ouverture du composeur avec le code préparé. Si le composeur ne s'ouvre pas (ordinateur, navigateur limité), un écran de secours affiche le code à copier.
+1. **Base** : le serveur (schéma `mayapay`) est déjà installé dans Supabase. Le fichier SQL contient les formules : **ne le mettez jamais sur GitHub**.
+2. **Site** : envoyez tous les fichiers (aucun sous-dossier) à la racine du dépôt GitHub, branche `main`. Dans Settings > Pages : Deploy from a branch, `main`, `/ (root)`.
+3. Dans `config.js`, `supabase.url` et `supabase.key` (clé publishable) doivent être ceux du projet où vous avez exécuté le SQL.
+4. Testez avec un petit montant sur de vrais comptes Orange Money et Moov Money.
 
-## Limites à connaître
+## Confirmation par SMS : ce que ça prouve
 
-### Où se trouve le numéro du vendeur
-Par défaut (`supabase.url` renseigné dans `config.js`), le numéro est stocké dans Supabase et **n'est pas dans le lien**, qui ne contient qu'un identifiant aléatoire de 12 caractères (`#/pay?i=...`). Le numéro n'est renvoyé au navigateur du client qu'au clic sur « Confirmer et continuer », car le code USSD en a besoin : le client peut donc toujours le voir en copiant le code, ce qu'aucune solution ne peut empêcher. La page client et l'écran de secours l'affichent masqué.
+- `Confirmé` : le message annonce un transfert, le montant demandé et le numéro du vendeur y figurent, et ce même message n'a jamais servi pour un autre paiement.
+- `À vérifier` : le montant est bon mais le bénéficiaire n'est pas lisible (numéro masqué). Le vendeur vérifie lui-même.
+- `Non confirmé` : échec, message de réception d'argent, mauvais montant, message déjà utilisé, texte sans rapport.
+- **Un client peut inventer un faux SMS.** Le vendeur doit toujours contrôler le SMS et le solde de son propre compte avant de livrer. Le lecteur de SMS se règle dans la fonction `mayapay_confirm` (mots-clés, formats) ; il est écrit pour des textes courants et doit être ajusté sur de vrais SMS Orange et Moov.
 
-Mise en place (déjà appliquée au projet Supabase BOUTIKI) :
+## Autres limites
 
-- schéma privé `omdirect`, table `links` fermée par RLS, sans aucun accès direct pour `anon` ou `authenticated` ;
-- trois fonctions RPC dans `public` : `omdirect_create_link` (retourne l'identifiant), `omdirect_get_link` (nom, montant, description, jamais le numéro) et `omdirect_get_number` ;
-- le vendeur choisit la durée de validité à la création (1 heure, 24 heures, 7 jours ou 30 jours, réglable dans `config.js`, 720 heures maximum côté base) ; un lien expiré affiche « Lien de paiement invalide » ;
-- la clé publishable de `config.js` est faite pour être publique.
+- N'importe qui peut créer des liens (pas de compte vendeur) ; il n'y a pas de limitation de débit à la création.
+- La clé de suivi du vendeur est dans son lien de suivi et dans son navigateur : qui l'a peut voir les messages reçus.
+- Pour supprimer les anciens liens : `delete from mayapay.links where expires_at < now() - interval '30 days';`
+- Pour changer une formule : `update mayapay.operators set template = '...' where id = 'orange';`.
+- Les liens se créent avec `mayapay_create_v2` (un numéro par opérateur) ; l'ancienne `mayapay_create` (numéro unique) reste active pour les anciens liens. Les anciennes fonctions `omdirect_*` (version précédente) restent dans la base ; vous pouvez les supprimer si vous n'avez plus d'anciens liens.
 
-Limites : n'importe qui peut créer des liens (pas de compte vendeur, par choix du projet), il n'y a pas de limitation de débit, et un identifiant ne se devine pas mais se partage. Pour supprimer les liens expirés : `delete from omdirect.links where expires_at < now();`.
-
-Mode sans serveur : videz `supabase.url`. L'expiration est alors inscrite dans le lien et vérifiée par le navigateur du client (elle ne peut donc pas être imposée). Le numéro est alors encodé en base64url dans le lien (fragment `#/pay?d=...`, jamais envoyé à un serveur) ; **toute personne qui a le lien peut le décoder**.
-
-### Le montant et le bénéficiaire peuvent être modifiés dans le lien
-N'importe qui peut fabriquer un lien. C'est pourquoi la page client demande au client de vérifier le montant et le nom du bénéficiaire affiché par Orange Money avant de valider.
-
-### Les codes USSD ne sont pas vérifiés
-Les codes suivants viennent du cahier des charges et **n'ont pas pu être testés sur un compte Orange Money réel** :
-
-- obtention du CAUU : `#144#77#`
-- transfert : `#144#11*NUMERO*MONTANT*1*CAUU*NUMERO#`
-
-Rien n'est affirmé comme fonctionnel. Avant toute mise en service : vérifiez les codes auprès d'Orange Money, testez avec un petit montant sur de vrais comptes, puis modifiez `config.js` (`cauuRequest`, `transferTemplate`, `cauuPattern`) si nécessaire et passez `ussd.verified` à `true`. Tant que ce champ vaut `false`, un avertissement s'affiche côté vendeur.
-
-L'ouverture automatique repose sur un lien `tel:` avec `#` encodé en `%23`. Son comportement dépend du téléphone et du navigateur, d'où l'écran de secours.
-
-## Sécurité
-
-- Le **code PIN n'est jamais demandé**, ni stocké, ni transmis.
-- Le **CAUU** est saisi dans un champ masqué, gardé en mémoire uniquement (jamais dans l'URL, `localStorage` ou un cookie), effacé après usage, au retour en arrière, au changement de page et après 2 minutes (`cauuTtlMs`). L'écran de secours affiche le code avec le numéro du vendeur et le CAUU masqués ; la copie du code complet place le numéro et le CAUU dans le presse-papiers de l'appareil jusqu'à son remplacement.
-- Toutes les données lues dans un lien sont revalidées (longueur, format, numéro, montant) puis affichées avec `textContent` : une description du type `<script>` s'affiche comme du texte. Un lien altéré affiche « Lien de paiement invalide ».
-- Chaque valeur injectée dans le code USSD est strictement numérique ; le code final n'accepte que `0-9`, `*` et `#`.
-
-## Structure
+## Fichiers
 
 ```
-index.html              page unique (vues vendeur, client, erreur)
-manifest.webmanifest    configuration PWA
-sw.js                   service worker (fonctionne hors ligne)
-style.css           design
-config.js            configuration : devise, limites, codes USSD
-link.js              validation, encodage et décodage des liens
-ussd.js              préparation du code USSD
-api.js               appels Supabase (RPC)
-app.js               interface et parcours
-icon.svg, icon-*.png    icônes PWA (SVG, PNG 192 et 512, maskable)
-om-direct.test.mjs      tests Node (npm test)
+index.html              page unique (vendeur, suivi, client, erreur)
+style.css               design
+banner.jpg              bannière de la page d'accueil
+config.js               nom, devise, limites, opérateurs affichés, Supabase
+app.js                  parcours
+api.js                  appels Supabase (RPC)
+link.js                 validation des saisies
+ussd.js                 ouverture du composeur (tel:)
+sw.js, manifest.webmanifest, icon*   PWA (icônes tirées du logo)
 ```
-
-## Personnalisation
-
-Tout se règle dans `config.js` : indicatif pays (`223` par défaut), longueur des numéros, montant maximal, longueurs de texte, codes USSD. Pour changer la couleur, modifiez les variables en haut de `style.css`.
 
 ## Licence
 

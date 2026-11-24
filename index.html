@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>OM Direct</title>
-  <meta name="description" content="Créez un lien de paiement Orange Money et recevez l'argent directement sur votre compte.">
-  <meta name="theme-color" content="#FF7900">
+  <title>MAYA-PAY</title>
+  <meta name="description" content="MAYA-PAY : un raccourci de lien pour faciliter les paiements Mobile Money (Orange Money, Moov Money).">
+  <meta name="theme-color" content="#1E1E21">
   <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -29,26 +30,37 @@
       <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></symbol>
       <symbol id="i-external" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
       <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
     </defs>
   </svg>
 
   <header class="top">
-    <a class="brand" href="./" aria-label="OM Direct, accueil">
-      <img src="icon.svg" width="32" height="32" alt="">
-      <span>OM Direct</span>
+    <a class="brand" href="./" aria-label="MAYA-PAY, accueil">
+      <img src="icon-192.png" width="36" height="36" alt="">
+      <span>MAYA-PAY</span>
     </a>
     <button id="install" class="btn ghost small" type="button" hidden>Installer l'application</button>
   </header>
 
   <main>
-    <noscript><p class="notice">OM Direct a besoin de JavaScript pour fonctionner.</p></noscript>
+    <noscript><p class="notice">MAYA-PAY a besoin de JavaScript pour fonctionner.</p></noscript>
+
+    <!-- Téléphone uniquement -->
+    <section id="view-desktop" hidden>
+      <img class="banner" src="banner.jpg" width="1200" height="670" alt="MAYA-PAY, the future of mobile payments" fetchpriority="high">
+      <article class="card pay-card">
+        <h1>Ouvrez MAYA-PAY sur votre téléphone</h1>
+        <p class="lead">MAYA-PAY sert aux paiements mobiles (Orange Money, Moov Money) et fonctionne uniquement sur téléphone.</p>
+      </article>
+    </section>
 
     <!-- Vue vendeur -->
     <section id="view-vendor" hidden>
+      <img class="banner" src="banner.jpg" width="1200" height="670" alt="MAYA-PAY, the future of mobile payments" fetchpriority="high">
       <div id="vendor-grid" class="vendor-grid">
         <form id="form" class="card" novalidate autocomplete="on">
           <h1>Créer un lien de paiement</h1>
-          <p class="lead">Votre client paie depuis son compte Orange Money vers le vôtre. L'argent ne passe jamais par OM Direct.</p>
+          <p class="lead">Votre client paie depuis son compte Orange Money ou Moov Money vers le vôtre. L'argent ne passe jamais par MAYA-PAY.</p>
 
           <div class="field">
             <label for="f-n">Nom commercial</label>
@@ -56,10 +68,15 @@
             <p class="err" id="e-n" role="alert"></p>
           </div>
           <div class="field">
-            <label for="f-p">Numéro Orange Money</label>
-            <input id="f-p" name="tel" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" required aria-describedby="h-p e-p">
-            <p class="hint" id="h-p">Il n'est pas affiché sur la page client, mais il est contenu dans le lien.</p>
-            <p class="err" id="e-p" role="alert"></p>
+            <label for="f-po">Numéro Orange Money <span class="opt">(facultatif)</span></label>
+            <input id="f-po" name="tel" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" aria-describedby="h-p e-po">
+            <p class="err" id="e-po" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="f-pm">Numéro Moov Money <span class="opt">(facultatif)</span></label>
+            <input id="f-pm" name="tel-moov" type="tel" inputmode="tel" autocomplete="off" placeholder="66 12 34 56" aria-describedby="h-p e-pm">
+            <p class="hint" id="h-p">Renseignez au moins un des deux. Vos numéros sont cachés : ni dans le lien, ni affichés à vos clients. Le client ne verra que les opérateurs pour lesquels vous avez saisi un numéro.</p>
+            <p class="err" id="e-pm" role="alert"></p>
           </div>
           <div class="field">
             <label for="f-a">Montant demandé</label>
@@ -71,7 +88,6 @@
             <input id="f-d" name="description" type="text" maxlength="120" autocomplete="off" placeholder="Sac de riz de 50 kg" aria-describedby="e-d">
             <p class="err" id="e-d" role="alert"></p>
           </div>
-
           <div class="field">
             <label for="f-h">Durée de validité du lien</label>
             <select id="f-h" name="validity" aria-describedby="e-h"></select>
@@ -79,7 +95,7 @@
           </div>
 
           <button class="btn primary block" type="submit"><svg class="ic"><use href="#i-arrow"/></svg>Générer le lien</button>
-          <p id="ussd-notice" class="notice" hidden>Le format USSD n'est pas encore vérifié sur un compte réel. Testez avec un petit montant avant de partager des liens (voir le README).</p>
+          <p id="form-err" class="err center" role="alert"></p>
           <button id="forget" class="linkish" type="button" hidden>Effacer mon nom et mon numéro de cet appareil</button>
         </form>
 
@@ -95,11 +111,30 @@
             <a id="r-wa" class="btn primary" target="_blank" rel="noopener noreferrer"><svg class="ic"><use href="#i-chat"/></svg>WhatsApp</a>
             <a id="r-sms" class="btn secondary"><svg class="ic"><use href="#i-sms"/></svg>SMS</a>
             <button id="r-share" class="btn secondary" type="button" hidden><svg class="ic"><use href="#i-share"/></svg>Partager</button>
-            <a id="r-open" class="btn secondary" target="_blank" rel="noopener noreferrer"><svg class="ic"><use href="#i-external"/></svg>Voir la page client</a>
+            <a id="r-track" class="btn secondary"><svg class="ic"><use href="#i-check"/></svg>Suivre le paiement</a>
           </div>
           <button id="r-new" class="btn ghost block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Nouveau lien</button>
         </div>
+
+        <div id="recent-box" class="card" hidden>
+          <h2>Mes liens récents</h2>
+          <ul id="recent" class="recent"></ul>
+        </div>
       </div>
+    </section>
+
+    <!-- Suivi vendeur -->
+    <section id="view-track" hidden>
+      <article class="card pay-card">
+        <p class="muted">Suivi du paiement</p>
+        <h1 id="t-name"></h1>
+        <p class="amount"><span id="t-amount"></span><small>FCFA</small></p>
+        <p id="t-desc" class="desc"></p>
+        <p id="t-state" class="state" role="status" aria-live="polite"></p>
+        <ul id="t-list" class="proofs"></ul>
+        <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Un message collé par un client peut être falsifié. Vérifiez toujours le SMS et le solde de votre compte Orange Money ou Moov Money avant de livrer.</span></p>
+        <a class="btn ghost block" href="./">Retour</a>
+      </article>
     </section>
 
     <!-- Vue client -->
@@ -115,45 +150,49 @@
           <span class="wire"><i></i></span>
           <span class="node"><svg class="ic"><use href="#i-store"/></svg></span>
         </div>
-        <p class="route-label"><span>Votre compte Orange Money</span><span id="pay-name-2"></span></p>
+        <p class="route-label"><span>Votre compte Mobile Money</span><span id="pay-name-2"></span></p>
 
+        <!-- 1. Départ -->
         <div id="step-1">
-          <button id="pay-btn" class="btn primary block big" type="button"><svg class="ic"><use href="#i-arrow"/></svg>Payer avec Orange Money</button>
-          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg>OM Direct ne vous demande jamais votre code PIN.</p>
+          <p class="choose">Choisissez votre opération :</p>
+          <div id="ops" class="ops"></div>
+          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span>Votre opérateur vous demandera de confirmer avec votre code PIN : MAYA-PAY ne le connaît jamais. Le bénéficiaire affiché doit être <strong id="warn-name"></strong>.</span></p>
+          <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Premier paiement : testez toujours avec un petit montant.</span></p>
+          <button id="go-confirm-1" class="linkish" type="button">J'ai déjà payé : confirmer mon paiement</button>
         </div>
 
+        <!-- 2. Session ouverte (2 minutes) -->
         <div id="step-2" hidden>
-          <h2>Avant de continuer</h2>
-          <div class="warn"><svg class="ic"><use href="#i-alert"/></svg>
-            <p>Vérifiez le montant et le bénéficiaire. Orange Money affichera le nom du bénéficiaire avant que vous validiez : il doit correspondre à <strong id="warn-name"></strong>.</p>
+          <div class="timer" role="timer" aria-live="off">
+            <svg class="ic"><use href="#i-clock"/></svg>
+            <span>Session ouverte, fermeture dans</span>
+            <strong id="countdown">02:00</strong>
           </div>
-          <dl class="sum">
-            <div><dt>Montant</dt><dd id="sum-amount"></dd></div>
-            <div><dt>Bénéficiaire</dt><dd id="sum-name"></dd></div>
-          </dl>
-          <label class="check"><input id="chk" type="checkbox"><span>J'ai vérifié le montant et le bénéficiaire.</span></label>
-
-          <div id="cauu-block">
-            <p class="step-title">Obtenez votre code à usage unique (CAUU)</p>
-            <a id="cauu-link" class="btn secondary block"><svg class="ic"><use href="#i-lock"/></svg>Obtenir mon CAUU</a>
-            <div class="field">
-              <label for="cauu">Code CAUU reçu</label>
-              <input id="cauu" class="secret" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="10" aria-describedby="e-cauu">
-              <p class="err" id="e-cauu" role="alert"></p>
-            </div>
-          </div>
-
-          <button id="confirm" class="btn primary block big" type="button" disabled><svg class="ic"><use href="#i-check"/></svg>Confirmer et continuer</button>
-          <button id="back" class="btn ghost block" type="button">Retour</button>
-          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg>Le CAUU reste dans cette page et s'efface après quelques minutes.</p>
+          <div class="bar"><i id="bar"></i></div>
+          <p>Le composeur de votre téléphone s'est ouvert avec le code <strong id="op-name"></strong>. Appuyez sur appeler, puis validez avec votre code PIN chez votre opérateur.</p>
+          <button id="redial" class="btn secondary block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Rouvrir le composeur</button>
+          <button id="go-confirm-2" class="btn primary block" type="button"><svg class="ic"><use href="#i-check"/></svg>J'ai payé : confirmer</button>
         </div>
 
+        <!-- 3. Session fermée -->
         <div id="step-3" hidden>
-          <h2>Le composeur ne s'est pas ouvert ?</h2>
-          <p>Copiez le code ci-dessous, ouvrez l'application Téléphone, collez-le et appelez. Sur ordinateur, composez-le depuis votre téléphone.</p>
-          <p id="fb-code" class="code" aria-live="polite"></p>
-          <button id="fb-copy" class="btn secondary block" type="button"><svg class="ic"><use href="#i-copy"/></svg><span>Copier le code</span></button>
-          <button id="fb-retry" class="btn ghost block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Recommencer</button>
+          <h2>Session fermée</h2>
+          <p>Le délai de 2 minutes est dépassé : le code a été effacé. Si l'opération n'est pas terminée, rouvrez-la.</p>
+          <button id="reopen" class="btn primary block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Rouvrir une opération</button>
+          <button id="go-confirm-3" class="btn secondary block" type="button">J'ai déjà payé : confirmer mon paiement</button>
+        </div>
+
+        <!-- 4. Confirmation par SMS -->
+        <div id="step-4" hidden>
+          <h2>Confirmer mon paiement</h2>
+          <p>Copiez le SMS de confirmation reçu d'Orange Money ou de Moov Money, puis collez-le ici. MAYA-PAY le lit et informe le vendeur.</p>
+          <div class="field">
+            <label for="sms">Message de confirmation</label>
+            <textarea id="sms" rows="5" maxlength="1000" autocomplete="off" spellcheck="false" placeholder="Collez ici le SMS reçu"></textarea>
+          </div>
+          <button id="verify" class="btn primary block big" type="button"><svg class="ic"><use href="#i-check"/></svg>Vérifier mon paiement</button>
+          <div id="verdict" class="verdict" role="status" aria-live="polite" hidden></div>
+          <button id="back-confirm" class="btn ghost block" type="button">Retour</button>
         </div>
       </article>
     </section>
@@ -166,9 +205,13 @@
         <a class="btn secondary" href="./">Créer mon propre lien</a>
       </article>
     </section>
+
   </main>
 
-  <footer class="foot">OM Direct prépare le transfert. Le paiement est effectué par Orange Money, de compte à compte.</footer>
+  <footer class="foot">
+    <p><strong>MAYA-PAY n'est pas un agrégateur de paiement.</strong> C'est un simple raccourci de lien qui facilite les paiements mobiles. MAYA-PAY ne détient ni ne stocke aucun argent et ne garantit pas les produits ou services du vendeur. Faites toujours un premier test avec un petit montant.</p>
+    <p>Le paiement est effectué par Orange Money ou Moov Money, de compte à compte.</p>
+  </footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script type="module" src="app.js"></script>
 </body>

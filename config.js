@@ -1,6 +1,6 @@
-// Configuration unique d'OM Direct. Modifiez ce fichier, pas le reste du code.
+// Configuration unique de MAYA-PAY. Modifiez ce fichier, pas le reste du code.
 export const CONFIG = {
-  appName: 'OM Direct',
+  appName: 'MAYA-PAY',
   currency: 'FCFA',
 
   // Indicatif pays retiré automatiquement si l'utilisateur le saisit (223 = Mali).
@@ -21,32 +21,20 @@ export const CONFIG = {
     ],
   },
 
-  // Mode serveur : le numéro du vendeur reste dans Supabase et n'est jamais dans le lien.
-  // La clé « publishable » est faite pour être publique ; la table est fermée par RLS
-  // et seules trois fonctions RPC sont accessibles. Laissez url vide pour revenir au mode
-  // sans serveur (numéro encodé dans le lien).
+  // Serveur (Supabase) : le numéro du vendeur et les formules USSD n'existent QUE dans la base
+  // (voir maya-pay.sql). Ce site ne les contient jamais. La clé « publishable » est faite pour
+  // être publique ; les tables sont fermées par RLS et seules des fonctions RPC sont accessibles.
   supabase: {
     url: 'https://zxmgwyrnfshrspplfxpf.supabase.co',
     key: 'sb_publishable_5I-c13DK_gRqIep_YwEBtg_g76CXbXG',
   },
 
-  ussd: {
-    // IMPORTANT : ces codes viennent du cahier des charges et n'ont PAS pu être testés
-    // sur un vrai compte Orange Money. Passez `verified` à true uniquement après un test
-    // réel (petit montant), ce qui masque l'avertissement affiché côté vendeur.
-    verified: false,
+  // Opérateurs proposés au client (les formules sont dans la base, table mayapay.operators).
+  operators: [
+    { id: 'orange', label: 'Orange Money' },
+    { id: 'moov', label: 'Moov Money' },
+  ],
 
-    // Code pour obtenir le CAUU (code d'accès à usage unique).
-    cauuRequest: '#144#77#',
-
-    // Gabarit du transfert. Variables : {NUMERO} {MONTANT} {CAUU}.
-    // Si {CAUU} est absent du gabarit, le champ CAUU n'est pas demandé au client.
-    transferTemplate: '#144#11*{NUMERO}*{MONTANT}*1*{CAUU}*{NUMERO}#',
-
-    // Format accepté pour le CAUU saisi par le client (à ajuster après vérification).
-    cauuPattern: /^\d{4,10}$/,
-
-    // Durée de vie du CAUU et du code préparé en mémoire, en millisecondes.
-    cauuTtlMs: 120000,
-  },
+  // Rafraîchissement automatique de la page de suivi du vendeur (secondes).
+  trackRefreshSeconds: 10,
 };
