@@ -5,9 +5,9 @@ export const validId = (id) => /^[0-9a-f]{12}$/.test(String(id ?? ''));
 export const validKey = (k) => /^[0-9a-f]{32}$/.test(String(k ?? ''));
 
 // Appelle une fonction RPC. En cas d'erreur, le message de la base (ex. « rate_limited ») devient err.code.
-async function rpc(fn, args) {
+async function rpc(fn, args, timeoutMs = 10000) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10000);
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(`${CONFIG.supabase.url}/rest/v1/rpc/${fn}`, {
       method: 'POST',
@@ -34,5 +34,10 @@ export const getLink = (id) => rpc('mayapay_get', { p_id: id });
 export const startSession = (id, operator) => rpc('mayapay_start', { p_id: id, p_operator: operator });
 // Envoie le SMS de confirmation collé par le client ; le serveur le lit et répond.
 export const confirmPayment = (id, operator, message) => rpc('mayapay_confirm', { p_id: id, p_operator: operator, p_message: message });
+// Envoie une capture d'écran (data URL JPEG, 450 000 caractères max) : transmise au vendeur, statut « À vérifier ».
+// Délai long : la capture pèse plusieurs centaines de Ko et le réseau mobile peut être lent.
+export const confirmImage = (id, operator, image) => rpc('mayapay_confirm_image', { p_id: id, p_operator: operator || '', p_image: image }, 60000);
+// Capture d'un message (clé privée du vendeur) : retourne une data URL JPEG.
+export const proofImage = (id, key, proof) => rpc('mayapay_proof_image', { p_id: id, p_key: key, p_proof: proof }, 30000);
 // Suivi vendeur (clé privée).
 export const vendorStatus = (id, key) => rpc('mayapay_status', { p_id: id, p_key: key });

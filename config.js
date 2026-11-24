@@ -35,6 +35,15 @@ export const CONFIG = {
     { id: 'moov', label: 'Moov Money' },
   ],
 
+  // Application Android : sur Android, le paiement n'est possible que depuis l'application MAYA-PAY
+  // (le code USSD et le numéro du vendeur n'apparaissent alors dans aucun composeur).
+  // apkUrl : adresse de l'APK (fichier à la racine du dépôt, ou lien GitHub Releases).
+  app: {
+    required: true,
+    apkUrl: 'MAYA-PAY.apk',
+    androidPackage: 'com.mayapay.app',
+  },
+
   // Rafraîchissement automatique de la page de suivi du vendeur (secondes).
   trackRefreshSeconds: 10,
 };

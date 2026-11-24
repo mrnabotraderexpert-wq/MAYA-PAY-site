@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { validatePayment, parseHash, formatAmount } from './link.js';
-import { serverReady, validId, validKey, createLink, getLink, startSession, confirmPayment, vendorStatus } from './api.js';
+import { serverReady, validId, validKey, createLink, getLink, startSession, confirmPayment, confirmImage, proofImage, vendorStatus } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 
 const $ = (id) => document.getElementById(id);
@@ -54,7 +54,9 @@ const fmtDate = (iso) => new Date(iso).toLocaleString('fr-FR', { day: '2-digit',
 
 /* ---------- Routage par fragment ---------- */
 let trackTimer;
-const stopTrack = () => { clearInterval(trackTimer); trackTimer = null; };
+let lastSig = '';
+const shotCache = new Map(); // captures déjà chargées (clé : id du message), en mémoire seulement
+const stopTrack = () => { clearInterval(trackTimer); trackTimer = null; shotCache.clear(); lastSig = ''; };
 
 function route() {
   wipeSecrets();
@@ -188,9 +190,54 @@ $('forget').addEventListener('click', () => {
 const REASON_CHECK = {
   recipient_partial: 'Montant correct, numéro du bénéficiaire partiellement lisible.',
   recipient_not_found: 'Montant correct, mais le bénéficiaire n’apparaît pas dans le message.',
+  screenshot: 'Capture d’écran envoyée par le client : comparez-la avec le solde de votre compte.',
 };
+const IMG_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
 
-function renderProofs(proofs) {
+function openLightbox(src) {
+  $('lightbox').querySelector('img').src = src;
+  $('lightbox').hidden = false;
+}
+$('lightbox').addEventListener('click', () => { $('lightbox').hidden = true; $('lightbox').querySelector('img').removeAttribute('src'); });
+
+function shotImg(src) {
+  const fig = document.createElement('figure');
+  fig.className = 'proof-shot';
+  const img = document.createElement('img');
+  img.alt = 'Capture d’écran envoyée par le client';
+  img.src = src;
+  img.addEventListener('click', () => openLightbox(src));
+  fig.appendChild(img);
+  return fig;
+}
+
+// La capture est chargée seulement à la demande du vendeur (elle pèse plusieurs centaines de Ko).
+function shotHolder(p, id, key) {
+  const holder = document.createElement('div');
+  const ck = String(p.id);
+  if (shotCache.has(ck)) { holder.appendChild(shotImg(shotCache.get(ck))); return holder; }
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn secondary small';
+  b.textContent = 'Voir la capture';
+  b.addEventListener('click', async () => {
+    b.disabled = true;
+    b.textContent = 'Chargement…';
+    try {
+      const data = await proofImage(id, key, p.id);
+      if (typeof data !== 'string' || !IMG_RE.test(data)) throw new Error('bad image');
+      shotCache.set(ck, data);
+      holder.replaceChildren(shotImg(data));
+    } catch {
+      b.disabled = false;
+      b.textContent = 'Réessayer : chargement impossible';
+    }
+  });
+  holder.appendChild(b);
+  return holder;
+}
+
+function renderProofs(proofs, id, key) {
   const ul = $('t-list');
   ul.replaceChildren();
   for (const p of proofs) {
@@ -210,10 +257,14 @@ function renderProofs(proofs) {
       why.textContent = REASON_CHECK[p.reason];
       li.appendChild(why);
     }
-    const pre = document.createElement('pre');
-    pre.className = 'sms';
-    pre.textContent = String(p.message);
-    li.appendChild(pre);
+    if (p.has_image) {
+      li.appendChild(shotHolder(p, id, key));
+    } else {
+      const pre = document.createElement('pre');
+      pre.className = 'sms';
+      pre.textContent = String(p.message);
+      li.appendChild(pre);
+    }
     ul.appendChild(li);
   }
 }
@@ -232,14 +283,16 @@ async function refreshTrack(id, key) {
   $('t-amount').textContent = formatAmount(Number(s.a));
   $('t-desc').textContent = String(s.d || '');
   const proofs = Array.isArray(s.proofs) ? s.proofs : [];
-  renderProofs(proofs);
+  // Ne reconstruit la liste que si elle a changé (évite de recharger les captures toutes les 10 s).
+  const sig = JSON.stringify(proofs.map((p) => [p.id, p.status, p.reason, p.has_image]));
+  if (sig !== lastSig) { lastSig = sig; renderProofs(proofs, id, key); }
   const st = $('t-state');
   const confirmed = proofs.some((p) => p.status === 'confirmed');
   st.className = 'state ' + (confirmed ? 'ok' : proofs.length ? 'warn' : '');
   st.textContent = confirmed
     ? 'Paiement reçu : le message de confirmation correspond.'
     : proofs.length
-      ? 'Un message a été reçu : vérifiez-le sur votre compte.'
+      ? 'Un message ou une capture a été reçu : vérifiez-le sur votre compte.'
       : 'En attente du paiement du client…';
 }
 
@@ -247,6 +300,7 @@ async function showTrack(id, key) {
   document.title = 'Suivi du paiement – MAYA-PAY';
   for (const k of ['t-name', 't-amount', 't-desc', 't-state']) $(k).textContent = '';
   $('t-list').replaceChildren();
+  lastSig = '';
   show('view-track');
   await refreshTrack(id, key);
   if (!location.hash.includes(id)) return;
@@ -307,6 +361,23 @@ function showVerdict(kind, title, text) {
   v.hidden = false;
 }
 
+// Sur Android, hors de l'application : le paiement passerait par le composeur (code et numéro visibles).
+// On demande alors d'installer l'application MAYA-PAY. iPhone et autres : parcours web habituel.
+const inApp = () => Boolean(window.MayaNative && typeof window.MayaNative.dial === 'function');
+const needsApp = () => Boolean(CONFIG.app?.required) && /Android/i.test(navigator.userAgent) && !inApp();
+
+function applyGate() {
+  const need = needsApp();
+  $('app-gate').hidden = !need;
+  opsBox.hidden = need;
+  $('choose-label').hidden = need;
+  if (!need) return;
+  $('apk-link').href = CONFIG.app.apkUrl;
+  // Ouvre ce même paiement dans l'application déjà installée.
+  const rest = location.host + location.pathname + location.search + location.hash;
+  $('app-open').href = `intent://${rest}#Intent;scheme=https;package=${CONFIG.app.androidPackage};end`;
+}
+
 function showPay(p) {
   payment = p;
   lastOp = '';
@@ -320,7 +391,10 @@ function showPay(p) {
   $('sms').disabled = false;
   $('verify').hidden = false;
   $('verdict').hidden = true;
+  resetShot();
+  $('shot-box').hidden = false;
   renderOps();
+  applyGate();
   step(1);
   show('view-pay');
 }
@@ -336,7 +410,7 @@ async function loadPay(id) {
 $('reopen').addEventListener('click', () => step(1));
 
 async function pay(op) {
-  if (!payment) return;
+  if (!payment || needsApp()) return;
   setOpsDisabled(true);
   let r;
   try {
@@ -360,6 +434,11 @@ async function pay(op) {
 // déjà saisi, le client appuie sur appeler. Sur un téléphone à deux SIM, c'est le téléphone qui demande la SIM.
 function dial() {
   if (!session) return;
+  // Dans l'application Android MAYA-PAY : appel direct sur la SIM de l'opérateur choisi, sans composeur.
+  if (window.MayaNative && typeof window.MayaNative.dial === 'function') {
+    window.MayaNative.dial(session.code, session.op);
+    return;
+  }
   location.href = toTelUri(session.code);
 }
 $('redial').addEventListener('click', dial);
@@ -407,6 +486,7 @@ const ERRORS = {
   no_session: 'Ouvrez d’abord le paiement avec le bouton « Payer ».',
   rate_limited: 'Trop d’essais. Réessayez plus tard.',
   invalid_link: 'Lien expiré ou invalide.',
+  invalid_image: 'Image invalide ou trop lourde. Choisissez une autre capture.',
 };
 
 $('verify').addEventListener('click', async () => {
@@ -423,15 +503,111 @@ $('verify').addEventListener('click', async () => {
     $('verify').disabled = false;
   }
   if (r?.status === 'confirmed') {
-    $('sms').disabled = true;
-    $('verify').hidden = true;
+    lockConfirm();
     showVerdict('ok', 'Paiement confirmé', 'Le message correspond. Le vendeur est informé et verra votre message.');
   } else if (r?.status === 'check') {
-    $('sms').disabled = true;
-    $('verify').hidden = true;
+    lockConfirm();
     showVerdict('warn', 'Message transmis au vendeur', 'Le montant correspond, mais le bénéficiaire n’a pas pu être lu dans le message. Le vendeur a reçu votre message et va vérifier sur son compte.');
   } else {
     showVerdict('bad', 'Paiement non confirmé', REASONS[r?.reason] || 'Message non reconnu.');
+  }
+});
+
+/* Confirmation par capture d'écran : la photo est réduite et convertie en JPEG sur le téléphone, puis envoyée au serveur. */
+const SHOT_MAX_CHARS = 320000; // le serveur accepte 450 000 ; on reste plus léger pour les réseaux lents
+const SHOT_STEPS = [[1600, 0.7], [1400, 0.65], [1200, 0.6], [1000, 0.55], [800, 0.5], [640, 0.45]];
+let shotData = null;
+
+function resetShot() {
+  shotData = null;
+  $('shot').value = '';
+  $('shot-preview').hidden = true;
+  $('shot-preview').removeAttribute('src');
+  $('send-shot').hidden = true;
+  $('send-shot').disabled = false;
+  $('shot-pick').hidden = false;
+  $('shot-pick-text').textContent = 'Choisir une capture';
+}
+
+// Le SMS ou la capture a été transmis : on verrouille les deux modes de confirmation.
+function lockConfirm() {
+  $('sms').disabled = true;
+  $('verify').hidden = true;
+  $('shot-box').hidden = true;
+}
+
+async function decodeImage(file) {
+  if (window.createImageBitmap) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { /* repli ci-dessous */ }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('decode'));
+      img.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function compressImage(file) {
+  const src = await decodeImage(file);
+  const sw = src.width, sh = src.height;
+  if (!sw || !sh) throw new Error('decode');
+  for (const [side, quality] of SHOT_STEPS) {
+    const k = Math.min(1, side / Math.max(sw, sh));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(sw * k));
+    c.height = Math.max(1, Math.round(sh * k));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; // fond blanc pour les PNG transparents
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    const data = c.toDataURL('image/jpeg', quality);
+    if (IMG_RE.test(data) && data.length <= SHOT_MAX_CHARS) { if (src.close) src.close(); return data; }
+  }
+  if (src.close) src.close();
+  throw new Error('too_big');
+}
+
+$('shot').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  $('verdict').hidden = true;
+  if (!/^image\//.test(file.type)) { resetShot(); return showVerdict('bad', 'Fichier non pris en charge', 'Choisissez une image (capture d’écran ou photo).'); }
+  $('shot-pick-text').textContent = 'Préparation de l’image…';
+  try {
+    shotData = await compressImage(file);
+  } catch {
+    resetShot();
+    return showVerdict('bad', 'Image illisible', 'Cette image ne peut pas être utilisée. Faites une capture d’écran du paiement et choisissez-la.');
+  }
+  $('shot-preview').src = shotData;
+  $('shot-preview').hidden = false;
+  $('send-shot').hidden = false;
+  $('shot-pick-text').textContent = 'Changer de capture';
+});
+
+$('send-shot').addEventListener('click', async () => {
+  if (!payment || !shotData) return;
+  $('send-shot').disabled = true;
+  $('verdict').hidden = true;
+  let r;
+  try {
+    r = await confirmImage(payment.id, lastOp, shotData);
+  } catch (err) {
+    $('send-shot').disabled = false;
+    return showVerdict('bad', 'Envoi impossible', ERRORS[err.code] || 'Connexion impossible. Vérifiez votre réseau et réessayez.');
+  }
+  if (r?.status === 'check') {
+    lockConfirm();
+    showVerdict('warn', 'Capture transmise au vendeur', 'Le vendeur a reçu votre capture d’écran et va la vérifier sur son compte avant de livrer.');
+  } else {
+    $('send-shot').disabled = false;
+    showVerdict('bad', 'Capture non acceptée', r?.reason === 'already_used' ? 'Cette capture a déjà été utilisée pour un paiement.' : 'Capture non reconnue. Réessayez avec une autre image.');
   }
 });
 

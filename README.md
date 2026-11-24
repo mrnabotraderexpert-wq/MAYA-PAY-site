@@ -10,6 +10,7 @@ Application web (PWA) **réservée au téléphone**. Le vendeur crée un lien et
 - **Client** : un bouton **Payer avec …** par opérateur,  parmi les opérateurs pour lesquels le vendeur a saisi un numéro (**Orange Money** et/ou **Moov Money**), puis le composeur du téléphone s'ouvre avec le code prêt. L'opérateur demande ensuite le code PIN.
 - **Session de 2 minutes** : un compte à rebours s'affiche. À zéro, le code est effacé et la session se ferme (la page tente de se fermer ; sinon elle affiche « Session fermée »). Si l'opération n'est pas terminée, le client la rouvre.
 - **Confirmation** : le client colle le SMS de confirmation Orange/Moov. Le serveur le lit, vérifie le montant et le bénéficiaire, répond au client (Confirmé, Transmis au vendeur, Non confirmé) et le message apparaît dans le **suivi du vendeur** (rafraîchi toutes les 10 secondes).
+- **Android hors application** : le client voit « Télécharger l’application » (et « ouvrir ce paiement » s’il l’a déjà) au lieu des boutons Payer. Déposez l’APK à la racine du dépôt sous le nom `MAYA-PAY.apk` (ou changez `app.apkUrl` dans `config.js`).
 - **Ordinateur** : un écran demande d'ouvrir MAYA-PAY sur un téléphone.
 
 ## Masquage du numéro et des formules
@@ -35,6 +36,7 @@ Le site (GitHub Pages) ne contient **ni numéro de vendeur, ni formule USSD**. T
 - `Confirmé` : le message annonce un transfert, le montant demandé et le numéro du vendeur y figurent, et ce même message n'a jamais servi pour un autre paiement.
 - `À vérifier` : le montant est bon mais le bénéficiaire n'est pas lisible (numéro masqué). Le vendeur vérifie lui-même.
 - `Non confirmé` : échec, message de réception d'argent, mauvais montant, message déjà utilisé, texte sans rapport.
+- **Capture d'écran** : le client peut aussi envoyer une capture (réduite en JPEG sur son téléphone, 5 par heure et par lien). Elle n'est jamais lue automatiquement : statut `À vérifier`, le vendeur l'ouvre depuis le suivi (« Voir la capture », toucher l'image pour l'agrandir) et la compare au solde de son compte.
 - **Un client peut inventer un faux SMS.** Le vendeur doit toujours contrôler le SMS et le solde de son propre compte avant de livrer. Le lecteur de SMS se règle dans la fonction `mayapay_confirm` (mots-clés, formats) ; il est écrit pour des textes courants et doit être ajusté sur de vrais SMS Orange et Moov.
 
 ## Autres limites
