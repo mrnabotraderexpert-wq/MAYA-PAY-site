@@ -1,5 +1,5 @@
 // Service worker : réseau d'abord, cache en secours (l'application s'ouvre hors ligne).
-const VERSION = 'maya-pay-v7';
+const VERSION = 'maya-pay-v8';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './style.css',
   './app.js', './api.js', './config.js', './link.js', './ussd.js',
