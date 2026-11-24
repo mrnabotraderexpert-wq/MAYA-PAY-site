@@ -481,6 +481,8 @@ const REASONS = {
   not_a_confirmation: 'Ce message ne ressemble pas à une confirmation de transfert Orange Money ou Moov Money.',
   amount_mismatch: 'Le montant du message ne correspond pas au montant demandé.',
   already_used: 'Ce message a déjà été utilisé pour un paiement.',
+  recipient_mismatch: 'Le numéro destinataire du message ne correspond pas à celui du vendeur.',
+  inconsistent: 'Les montants du message ne sont pas cohérents (montant, frais, total).',
 };
 const ERRORS = {
   no_session: 'Ouvrez d’abord le paiement avec le bouton « Payer ».',
@@ -489,10 +491,12 @@ const ERRORS = {
   invalid_image: 'Image invalide ou trop lourde. Choisissez une autre capture.',
 };
 
-$('verify').addEventListener('click', async () => {
-  if (!payment) return;
-  const msg = $('sms').value.trim();
-  if (msg.length < 20) return showVerdict('bad', 'Message incomplet', 'Collez le SMS complet reçu d’Orange Money ou de Moov Money.');
+let confirming = false;
+
+// Envoie un SMS au serveur et affiche le verdict. Utilisé par le bouton (SMS collé) et par l'application Android (SMS Moov lu automatiquement).
+async function submitSms(msg) {
+  if (!payment || confirming || $('verify').hidden) return;
+  confirming = true;
   $('verify').disabled = true;
   let r;
   try {
@@ -500,6 +504,7 @@ $('verify').addEventListener('click', async () => {
   } catch (err) {
     return showVerdict('bad', 'Vérification impossible', ERRORS[err.code] || 'Connexion impossible. Réessayez.');
   } finally {
+    confirming = false;
     $('verify').disabled = false;
   }
   if (r?.status === 'confirmed') {
@@ -511,7 +516,26 @@ $('verify').addEventListener('click', async () => {
   } else {
     showVerdict('bad', 'Paiement non confirmé', REASONS[r?.reason] || 'Message non reconnu.');
   }
+}
+
+$('verify').addEventListener('click', () => {
+  if (!payment) return;
+  const msg = $('sms').value.trim();
+  if (msg.length < 20) return showVerdict('bad', 'Message incomplet', 'Collez le SMS complet reçu d’Orange Money ou de Moov Money.');
+  submitSms(msg);
 });
+
+// Vérification automatique (Moov) : l'application Android appelle cette fonction dès que le SMS
+// « Transfert d'argent réussi… » arrive sur le téléphone. Rien à coller : le serveur vérifie le message.
+window.onMayaSms = (msg) => {
+  if (!payment || lastOp !== 'moov' || $('verify').hidden || typeof msg !== 'string') return;
+  const text = msg.trim().slice(0, 1000);
+  if (text.length < 20) return;
+  $('sms').value = text;
+  step(4);
+  showVerdict('warn', 'SMS Moov Money détecté', 'Vérification automatique en cours…');
+  submitSms(text);
+};
 
 /* Confirmation par capture d'écran : la photo est réduite et convertie en JPEG sur le téléphone, puis envoyée au serveur. */
 const SHOT_MAX_CHARS = 320000; // le serveur accepte 450 000 ; on reste plus léger pour les réseaux lents

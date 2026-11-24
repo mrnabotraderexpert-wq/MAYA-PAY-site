@@ -36,6 +36,7 @@ Le site (GitHub Pages) ne contient **ni numéro de vendeur, ni formule USSD**. T
 - `Confirmé` : le message annonce un transfert, le montant demandé et le numéro du vendeur y figurent, et ce même message n'a jamais servi pour un autre paiement.
 - `À vérifier` : le montant est bon mais le bénéficiaire n'est pas lisible (numéro masqué). Le vendeur vérifie lui-même.
 - `Non confirmé` : échec, message de réception d'argent, mauvais montant, message déjà utilisé, texte sans rapport.
+- **Vérification automatique Moov (v1.9)** : dans l'application Android, le SMS Moov « Transfert d'argent réussi vers … ID: … » est lu à son arrivée et envoyé tout seul à `mayapay_confirm` (`window.onMayaSms`). Sans l'application, le client colle le SMS. Le serveur vérifie le montant, le total (montant + frais + FSIDS), le numéro destinataire et l'unicité de l'ID Moov.
 - **Capture d'écran** : le client peut aussi envoyer une capture (réduite en JPEG sur son téléphone, 5 par heure et par lien). Elle n'est jamais lue automatiquement : statut `À vérifier`, le vendeur l'ouvre depuis le suivi (« Voir la capture », toucher l'image pour l'agrandir) et la compare au solde de son compte.
 - **Un client peut inventer un faux SMS.** Le vendeur doit toujours contrôler le SMS et le solde de son propre compte avant de livrer. Le lecteur de SMS se règle dans la fonction `mayapay_confirm` (mots-clés, formats) ; il est écrit pour des textes courants et doit être ajusté sur de vrais SMS Orange et Moov.
 
