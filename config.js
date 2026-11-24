@@ -10,6 +10,9 @@ export const CONFIG = {
   amount: { min: 1, max: 5000000 },
   limits: { name: 40, description: 120 },
 
+  // Photo / logo du vendeur affichée sur la page de paiement (carré, JPEG réduit sur le téléphone).
+  photo: { side: 256, maxChars: 60000 },
+
   // Durées de validité proposées au vendeur à la création du lien (en heures, 720 maximum).
   validity: {
     default: 168,

@@ -46,6 +46,13 @@ export function validatePayment(input) {
   return { ok: Object.keys(errors).length === 0, errors, value: { n, po, pm, a, d, h: Number.isFinite(h) && input.h !== undefined ? h : undefined } };
 }
 
+// Numéro du client qui paie : retourne { ok, value }.
+export function validatePayer(raw) {
+  const v = normalizeNumber(raw);
+  const { min, max } = CONFIG.numberDigits;
+  return { ok: v.length >= min && v.length <= max, value: v };
+}
+
 export function parseHash(hash) {
   const h = String(hash || '').replace(/^#/, '');
   const i = h.indexOf('?');

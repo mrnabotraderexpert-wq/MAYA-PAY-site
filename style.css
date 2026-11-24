@@ -1,14 +1,15 @@
 :root {
-  --orange: #FF7900;
-  --orange-d: #E06A00;
-  --ink: #1B1713;
-  --paper: #FAF8F5;
+  --orange: #F7870F;
+  --orange-d: #E07408;
+  --navy: #0A1F4D;
+  --ink: #0A1F4D;
+  --paper: #F3F6FE;
   --card: #FFFFFF;
-  --line: #E7E2DA;
-  --mute: #6B635A;
+  --line: #DCE3F4;
+  --mute: #3F4F7C;
   --ok: #17855A;
   --bad: #B3261E;
-  --warn-bg: #FFF4E8;
+  --warn-bg: #FDE9D2;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -16,8 +17,8 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100dvh; display: flex; flex-direction: column;
-  background: var(--paper); color: var(--ink);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(180deg, #E9F0FF 0, #F6F9FF 320px, #FFFFFF 900px); background-color: #fff; color: var(--ink);
+  font: 16px/1.5 "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
@@ -208,3 +209,143 @@ label.btn { cursor: pointer; }
 
 .hint-warn { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); border: 1px solid #F5CFA6; color: var(--ink); font-size: .875rem; }
 .hint-warn .ic { width: 16px; height: 16px; margin-top: 2px; flex: none; color: var(--orange-d); }
+
+/* Photo / logo du vendeur */
+.avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); background: var(--paper); flex: none; }
+.avatar.empty { display: inline-flex; align-items: center; justify-content: center; color: var(--muted, #777); }
+.avatar.empty .ic { width: 24px; height: 24px; }
+.avatar[hidden], .avatar.empty[hidden] { display: none; }
+.big-avatar { width: 84px; height: 84px; display: block; margin: 4px 0 8px; }
+.photo-row { display: flex; align-items: center; gap: 14px; }
+.photo-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.payer-field { margin-bottom: 14px; }
+
+.op.selected { outline: 3px solid var(--ink); outline-offset: 2px; }
+.auto { margin: 16px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.auto.bad { border-color: var(--bad); }
+.auto-title { margin: 0 0 4px; font-weight: 700; }
+.auto p.muted { margin: 0; }
+.detail { margin: 4px 0 0; font-size: .875rem; word-break: break-word; }
+
+/* Abonnement du vendeur */
+.sub-card h2 { margin-bottom: 8px; }
+.sub-status { font-weight: 700; margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); }
+.sub-status.ok { background: #EAF6F0; border-color: #A9D8C2; color: #0F5C3E; }
+.sub-status.bad { background: #FDECEA; border-color: #F2B8B3; color: var(--bad); }
+.sub-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.sub-facts div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+.sub-facts dt { color: var(--mute); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.sub-facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sub-card .hint { margin: 0 0 12px; }
+.sub-card .hint:empty { display: none; }
+
+
+/* ===== Habillage MAYA-PAY (maquette) : logo, bannière, Montserrat, bleu nuit + orange ===== */
+button, input, select, textarea { font-family: inherit; }
+
+/* En-tête : menu + logo */
+.top { max-width: none; margin: 0; padding: 10px max(16px, calc((100% - 1040px) / 2)); justify-content: flex-start; gap: 14px; background: #fff; box-shadow: 0 2px 14px rgba(10, 31, 77, .08); position: relative; z-index: 5; }
+.brand img { display: block; height: 46px; width: auto; border-radius: 0; }
+.menu-btn { flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--navy); display: grid; place-items: center; cursor: pointer; }
+.menu-btn .ic { width: 32px; height: 32px; stroke-width: 3; }
+.menu-btn:hover { background: var(--paper); }
+.menu { position: absolute; z-index: 30; top: calc(env(safe-area-inset-top) + 66px); left: 12px; min-width: 250px; max-width: calc(100% - 24px); background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 40px rgba(10, 31, 77, .18); padding: 8px; display: grid; gap: 2px; }
+.menu[hidden] { display: none; }
+.menu a, .menu-install { display: block; padding: 12px 14px; border-radius: 12px; color: var(--navy); font-weight: 600; text-decoration: none; text-align: left; background: none; border: 0; font-size: 1rem; cursor: pointer; }
+.menu a:hover, .menu-install:hover { background: var(--paper); }
+.menu-install { color: var(--orange-d); }
+
+/* Bannière pleine largeur */
+main { padding-top: 0; }
+.banner { width: calc(100% + 32px); max-width: none; margin: 0 -16px 18px; border-radius: 0 0 28px 28px; }
+@media (min-width: 880px) { .banner { width: 100%; max-width: 760px; margin: 18px auto 20px; border-radius: 28px; } }
+
+/* Cartes */
+.card { border-radius: 24px; border-color: #E3E9F7; box-shadow: 0 10px 30px rgba(10, 31, 77, .07); }
+.vendor-main { display: grid; gap: 18px; align-content: start; min-width: 0; }
+@media (min-width: 880px) { .vendor-grid.has-result > .vendor-main { grid-row: span 2; } }
+.vendor-grid.has-result > #recent-box { grid-column: auto; }
+
+/* Carte d'accueil : titre + Sarali */
+.hero-card { padding: 18px 14px 16px; }
+.hero-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; padding: 0 4px; }
+.hero-ic { flex: none; width: 64px; height: 64px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(10, 31, 77, .25); }
+.hero-ic .ic { width: 34px; height: 34px; stroke-width: 2.4; }
+.hero-card h1 { font-size: clamp(1.3rem, 6vw, 1.7rem); font-weight: 700; color: var(--navy); margin: 6px 0 6px; }
+.hero-rule { display: block; width: 60px; height: 3px; border-radius: 2px; background: var(--orange); margin-bottom: 10px; }
+.hero-card .lead { margin: 0; font-size: .95rem; line-height: 1.5; color: #1D3170; }
+
+.sarali-title { display: flex; align-items: center; gap: 10px; background: #FEEFE4; border-radius: 18px; padding: 12px 16px; margin-bottom: 8px; }
+.sarali-title .ic { width: 30px; height: 30px; color: var(--orange); stroke: none; }
+.sarali-title h2 { margin: 0; font-size: 1.3rem; font-weight: 700; color: var(--navy); }
+
+.sarali-banner { display: grid; grid-template-columns: minmax(0, 1.25fr) 76px minmax(0, 1fr); align-items: center; gap: 8px; padding: 12px 16px; border-radius: 20px; color: #fff; background: linear-gradient(95deg, #FF7302 0%, #FE8702 100%); margin-bottom: 8px; }
+.sarali-banner p { margin: 0; font-weight: 700; line-height: 1.25; }
+.sb-left { font-size: 1.02rem; }
+.sb-right { font-size: 1.02rem; font-weight: 600 !important; padding-left: 12px; border-left: 1px solid rgba(255, 255, 255, .6); }
+.sb-art { width: 76px; height: 76px; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.steps li { position: relative; display: flex; flex-direction: column; background: #F3F6FE; border: 1px solid #E3E9F7; border-radius: 18px; overflow: hidden; }
+.step-n { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: .8rem; display: grid; place-items: center; z-index: 1; }
+.step-art { padding: 36px 6px 6px; display: grid; place-items: center; }
+.step-art svg { width: 100%; max-width: 76px; height: auto; }
+.steps p { margin: 0; flex: 1; background: #EEF2FC; padding: 8px 6px 10px; font-size: .7rem; line-height: 1.35; text-align: center; color: var(--navy); }
+@media (max-width: 420px) { .steps { gap: 6px; } .steps p { font-size: .64rem; padding: 8px 4px 10px; } .sarali-banner { padding: 10px 12px; grid-template-columns: minmax(0, 1.2fr) 62px minmax(0, 1fr); } .sb-art { width: 62px; height: 62px; } .sb-left, .sb-right { font-size: .9rem; } }
+@media (min-width: 640px) { .steps p { font-size: .8rem; } .step-art svg { max-width: 96px; } }
+
+/* Formulaire vendeur */
+.vendor-form { padding: 0 4px; }
+.vendor-form .field { margin-bottom: 18px; }
+label { color: var(--navy); font-weight: 700; font-size: 1.02rem; }
+label .lic { display: inline-block; vertical-align: -6px; margin-right: 10px; width: 26px; height: 26px; color: var(--orange); }
+label .opt { font-weight: 500; color: var(--mute); }
+.inp { position: relative; }
+.inp > .gic, .inp > .opicon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.inp > .gic { width: 30px; height: 30px; color: #6B7BA3; stroke-width: 2.2; }
+.inp > .opicon { width: 34px; height: 34px; }
+.inp input { padding-left: 58px; }
+input[type=text], input[type=tel], select { height: 58px; border: 2px solid #D3DCF1; border-radius: 18px; font-size: 1.02rem; color: var(--navy); box-shadow: 0 1px 0 rgba(10, 31, 77, .03); }
+input::placeholder { color: #7A89B0; }
+input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(247, 135, 15, .35); outline-offset: 0; }
+.hint { color: var(--mute); }
+.hint-warn { padding: 12px 14px; border-radius: 16px; background: #FDE9D2; border: 1px solid #F5C48A; color: var(--navy); font-size: .98rem; line-height: 1.45; margin-top: 10px; }
+.hint-warn .ic { width: 26px; height: 26px; margin-top: 2px; color: var(--orange); }
+.hint-warn strong { color: var(--navy); }
+
+/* Boutons */
+.btn { border-radius: 16px; font-family: inherit; }
+.btn.primary { background: linear-gradient(95deg, #FF7302, #FE8702); color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, .15); box-shadow: 0 8px 18px rgba(247, 135, 15, .3); }
+.btn.primary:hover { background: linear-gradient(95deg, #EE6A00, #F27F00); }
+.btn.secondary { border-color: #CBD6F2; color: var(--navy); }
+.btn.secondary:hover { border-color: var(--navy); }
+.btn:disabled { text-shadow: none; box-shadow: none; }
+.btn.op-orange { background: linear-gradient(95deg, #FF7302, #FE8702); color: #fff; }
+.btn.op-moov { background: #1B5EAB; }
+.btn.op-moov:hover { background: #154C8C; }
+.avatar { border-color: #D3DCF1; }
+
+/* Abonnement : même charte */
+.sub-card { padding: 20px 18px; }
+.sub-card h2 { color: var(--navy); }
+
+/* Pied de page : vague bleu nuit + liseré orange */
+.foot { max-width: none; margin: 36px 0 0; padding: 40px 24px calc(24px + env(safe-area-inset-bottom)); background: var(--navy); color: #C9D3EE; border-radius: 50% 50% 0 0 / 26px 26px 0 0; box-shadow: 0 -8px 0 var(--orange); position: relative; }
+.foot p { max-width: 560px; margin-left: auto; margin-right: auto; }
+.foot strong { color: #fff; }
+
+/* Ajustements d'échelle (maquette 424 px) */
+.brand img { height: 40px; }
+.hero-ic { width: 52px; height: 52px; }
+.hero-ic .ic { width: 28px; height: 28px; }
+.hero-card h1 { font-size: clamp(1.1rem, 5.2vw, 1.6rem); margin: 2px 0 6px; }
+.hero-card .lead { font-size: .84rem; }
+.hero-head { gap: 12px; }
+.sarali-title h2 { font-size: 1.1rem; }
+.sarali-title .ic { width: 26px; height: 26px; }
+.sarali-banner { grid-template-columns: minmax(0, 1.5fr) 58px minmax(0, 1fr); gap: 8px; padding: 10px 14px; }
+.sb-left { font-size: .82rem; }
+.sb-right { font-size: .78rem; padding-left: 10px; }
+.sb-art { width: 58px; height: 58px; }
+.steps p { font-size: .66rem; }
+@media (min-width: 640px) { .sb-left { font-size: 1.05rem; } .sb-right { font-size: 1rem; } .hero-card .lead { font-size: 1rem; } }

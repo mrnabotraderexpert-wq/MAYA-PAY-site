@@ -1,9 +1,9 @@
 // Service worker : réseau d'abord, cache en secours (l'application s'ouvre hors ligne).
-const VERSION = 'maya-pay-v9';
+const VERSION = 'maya-pay-v13';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './style.css',
   './app.js', './api.js', './config.js', './link.js', './ussd.js',
-  './banner.jpg', './icon-192.png', './icon-512.png', './icon-maskable-512.png',
+  './admin.html', './admin.js', './admin.css', './banner.jpg', './logo.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (e) => {

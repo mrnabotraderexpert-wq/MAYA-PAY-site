@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Administration – MAYA-PAY</title>
+  <meta name="theme-color" content="#1E1E21">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./" aria-label="MAYA-PAY, accueil">
+      <img src="logo.png" width="280" height="55" alt="MAYA-PAY">
+      <span class="admin-tag">Admin</span>
+    </a>
+    <button id="logout" class="btn ghost small" type="button" hidden>Se déconnecter</button>
+  </header>
+
+  <main>
+    <noscript><p class="notice">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+
+    <!-- Connexion -->
+    <section id="view-login" class="admin-login" hidden>
+      <form id="login-form" class="card" autocomplete="off" novalidate>
+        <h1>Administration</h1>
+        <p class="lead">Accès réservé à l'administrateur de MAYA-PAY.</p>
+        <div class="field">
+          <label for="l-pass">Mot de passe</label>
+          <input id="l-pass" type="password" autocomplete="current-password" required style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+        </div>
+        <button class="btn primary block" type="submit"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Se connecter</button>
+        <p id="login-err" class="err center" role="alert"></p>
+      </form>
+    </section>
+
+    <!-- Tableau de bord -->
+    <section id="view-panel" class="admin" hidden>
+      <div class="topbar">
+        <div>
+          <h1>Gestion des abonnements</h1>
+          <p class="muted">Licences des vendeurs, prix, durée et accès gratuit.</p>
+        </div>
+        <button id="refresh" class="btn secondary small" type="button">Actualiser</button>
+      </div>
+
+      <div class="stats" aria-label="Résumé des licences">
+        <div class="stat"><strong id="s-active">–</strong><span>Licences actives</span></div>
+        <div class="stat"><strong id="s-expired">–</strong><span>Licences expirées</span></div>
+        <div class="stat"><strong id="s-suspended">–</strong><span>Suspendues</span></div>
+        <div class="stat"><strong id="s-pending">–</strong><span>Paiements à valider</span></div>
+      </div>
+
+      <article class="card">
+        <h2>Accès gratuit</h2>
+        <div class="switch-row">
+          <p><strong id="free-title"></strong><small id="free-text"></small></p>
+          <label class="switch" aria-label="Accès gratuit à MAYA-PAY">
+            <input id="free" type="checkbox"><i></i>
+          </label>
+        </div>
+        <p id="free-msg" class="msg" role="status"></p>
+      </article>
+
+      <article class="card">
+        <h2>Paramètres de l'abonnement</h2>
+        <form id="set-form" novalidate>
+          <div class="row two">
+            <div class="field">
+              <label for="a-price">Prix de l'abonnement</label>
+              <div class="suffix"><input id="a-price" type="text" inputmode="numeric" autocomplete="off" required><span>FCFA</span></div>
+            </div>
+            <div class="field">
+              <label for="a-days">Durée de la licence</label>
+              <select id="a-days">
+                <option value="30">30 jours</option>
+                <option value="90">3 mois (90 jours)</option>
+                <option value="180">6 mois (180 jours)</option>
+                <option value="365">1 an (365 jours)</option>
+                <option value="custom">Autre durée…</option>
+              </select>
+              <input id="a-days-custom" type="text" inputmode="numeric" autocomplete="off" placeholder="Nombre de jours" hidden style="margin-top:8px">
+            </div>
+          </div>
+          <div class="row two">
+            <div class="field">
+              <label for="a-orange">Numéro marchand Orange Money</label>
+              <input id="a-orange" type="tel" inputmode="tel" autocomplete="off" placeholder="76 12 34 56">
+            </div>
+            <div class="field">
+              <label for="a-moov">Numéro marchand Moov Money</label>
+              <input id="a-moov" type="tel" inputmode="tel" autocomplete="off" placeholder="66 12 34 56">
+            </div>
+          </div>
+          <p class="hint">Le lien de paiement d'abonnement est créé automatiquement pour chaque vendeur, vers ces numéros. Le vendeur ne voit que les opérateurs pour lesquels un numéro est renseigné. Sans aucun numéro, l'abonnement est indisponible.</p>
+          <button class="btn primary" type="submit" style="margin-top:12px">Enregistrer</button>
+          <p id="set-msg" class="msg" role="status"></p>
+        </form>
+      </article>
+
+      <article id="pending-card" class="card" hidden>
+        <h2>Paiements à valider</h2>
+        <p class="hint" style="margin-top:0">Ces paiements ont été détectés mais le serveur n'a pas pu les confirmer seul (numéro expéditeur non établi). Contrôlez la réception sur votre compte marchand avant de valider.</p>
+        <ul id="pending" class="list"></ul>
+        <p id="pay-msg" class="msg" role="status"></p>
+      </article>
+
+      <article class="card">
+        <h2>Licences des vendeurs</h2>
+        <div class="searchrow">
+          <input id="q" type="tel" inputmode="tel" placeholder="Rechercher un numéro" autocomplete="off" aria-label="Rechercher un numéro">
+        </div>
+        <ul id="licenses" class="list"></ul>
+        <h3 class="sub-head">Ajouter ou prolonger un numéro</h3>
+        <form id="add-form" class="item-actions" novalidate>
+          <input id="n-phone" type="tel" inputmode="tel" placeholder="Numéro du vendeur" autocomplete="off" aria-label="Numéro du vendeur" style="max-width:200px;height:48px;width:100%;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+          <input id="n-days" type="text" inputmode="numeric" autocomplete="off" aria-label="Jours à ajouter" style="width:90px;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+          <span class="muted">jours</span>
+          <button class="btn secondary" type="submit">Prolonger</button>
+        </form>
+        <p id="lic-msg" class="msg" role="status"></p>
+      </article>
+
+      <article class="card">
+        <h2>Derniers paiements d'abonnement</h2>
+        <ul id="payments" class="list"></ul>
+      </article>
+
+      <article class="card">
+        <h2>Mot de passe administrateur</h2>
+        <form id="pw-form" novalidate autocomplete="off">
+          <div class="row two">
+            <div class="field">
+              <label for="p-new">Nouveau mot de passe (10 caractères minimum)</label>
+              <input id="p-new" type="password" autocomplete="new-password" style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+            </div>
+            <div class="field">
+              <label for="p-new2">Confirmer</label>
+              <input id="p-new2" type="password" autocomplete="new-password" style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+            </div>
+          </div>
+          <button class="btn secondary" type="submit">Changer le mot de passe</button>
+          <p id="pw-msg" class="msg" role="status"></p>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <footer class="foot"><p>Les anciennes transactions, les historiques et les données des vendeurs ne sont jamais supprimés.</p></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
