@@ -132,6 +132,12 @@
         <ul id="payments" class="list"></ul>
       </article>
 
+      <article id="support-card" class="card" hidden>
+        <h2>Assistance clients</h2>
+        <div id="support-box"></div>
+        <p id="support-msg" class="msg" role="status"></p>
+      </article>
+
       <article class="card">
         <h2>Mot de passe administrateur</h2>
         <form id="pw-form" novalidate autocomplete="off">
@@ -155,5 +161,6 @@
   <footer class="foot"><p>Les anciennes transactions, les historiques et les données des vendeurs ne sont jamais supprimés.</p></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script type="module" src="admin.js"></script>
+  <script type="module" src="admin-support.js"></script>
 </body>
 </html>

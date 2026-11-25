@@ -51,3 +51,11 @@ export const adminLicenses = (pass, q) => rpc('mayapay_admin_licenses', { p_pass
 export const adminLicense = (pass, phone, action, days) => rpc('mayapay_admin_license', { p_pass: pass, p_phone: phone, p_action: action, p_days: days ?? null });
 export const adminPayment = (pass, id, action) => rpc('mayapay_admin_payment', { p_pass: pass, p_id: id, p_action: action });
 export const adminPassword = (pass, next) => rpc('mayapay_admin_password', { p_pass: pass, p_new: next });
+
+// ---- Assistance (messagerie client). Le client n'a pas de compte : un code secret généré dans son navigateur, dont le serveur ne garde que l'empreinte ----
+export const supportSend = (token, name, phone, body) => rpc('mayapay_support_send', { p_token: token, p_name: name || null, p_phone: phone || null, p_body: body });
+export const supportFetch = (token, after) => rpc('mayapay_support_fetch', { p_token: token, p_after: after || 0 });
+export const supportAdminList = (pass) => rpc('mayapay_support_admin_list', { p_pass: pass });
+export const supportAdminGet = (pass, thread, after) => rpc('mayapay_support_admin_get', { p_pass: pass, p_thread: thread, p_after: after || 0 });
+export const supportAdminReply = (pass, thread, body) => rpc('mayapay_support_admin_reply', { p_pass: pass, p_thread: thread, p_body: body });
+export const supportAdminClose = (pass, thread, closed) => rpc('mayapay_support_admin_close', { p_pass: pass, p_thread: thread, p_closed: closed });
