@@ -539,8 +539,7 @@ function showPay(p) {
   renderConsentNote();
   $('e-consent').textContent = '';
   $('payer-box').hidden = true;
-  $('verdict').hidden = true;
-  $('auto').hidden = true;
+  hideOutcome();
   $('sub-back').href = '#/';
   $('sub-back').hidden = p.k !== 'subscription';
   renderOps();
@@ -571,7 +570,7 @@ $('f-consent').addEventListener('change', () => {
   else store.set({ consent: null });
   renderConsentNote();
 });
-$('reopen').addEventListener('click', () => { stopPoll(); disarmNative(); $('auto').hidden = true; $('verdict').hidden = true; step(1); });
+$('reopen').addEventListener('click', () => { stopPoll(); disarmNative(); hideOutcome(); step(1); });
 
 async function pay(op) {
   if (!payment || needsApp() || !op) return;
@@ -590,10 +589,10 @@ async function pay(op) {
     return;
   }
   $('e-consent').textContent = '';
+  hideOutcome();
   const prev = store.get().consent;
   store.set({ payer: payer.value, consent: prev && prev.v === CONSENT_VERSION ? prev : { v: CONSENT_VERSION, at: Date.now() } });
   renderConsentNote();
-  $('verdict').hidden = true;
   setOpsDisabled(true);
   let r;
   try {
@@ -691,7 +690,7 @@ const CHECK_TEXT = {
 function setAuto(kind, reason) {
   const op = session ? operatorLabel(session.op) : 'de votre opérateur';
   const T = {
-    wait: ['En attente du SMS de confirmation…', `Gardez le téléphone allumé. Dès que le SMS ${op} arrive, le paiement est vérifié automatiquement : vous n’avez rien à faire.`],
+    wait: ['Gardez votre téléphone allumé !', `En attente du SMS de confirmation. Dès que le SMS ${op} arrive, le paiement est vérifié automatiquement : vous n’avez rien à faire.`],
     perm: ['Autorisation SMS manquante', 'Autorisez MAYA-PAY à lire les SMS (Paramètres du téléphone > Applications > MAYA-PAY > Autorisations), puis relancez le paiement.'],
     rejected: SPECIFIC_FAILS.has(reason)
       ? ['Paiement non confirmé', typeof REASONS[reason] === 'function' ? REASONS[reason](op) : REASONS[reason]]
@@ -699,10 +698,19 @@ function setAuto(kind, reason) {
     timeout: ['Aucun SMS de confirmation reçu', 'Si vous avez payé, le vendeur vérifiera la réception sur son compte. Sinon, rouvrez le paiement.'],
     noapp: ['Confirmation automatique indisponible', 'Elle fonctionne dans l’application MAYA-PAY (Android). Le vendeur vérifiera la réception sur son compte.'],
   }[kind];
-  $('auto').className = 'auto ' + (kind === 'rejected' || kind === 'perm' ? 'bad' : '');
+  $('auto').className = 'auto ' + (kind === 'wait' ? 'wait' : kind === 'rejected' || kind === 'perm' ? 'bad' : '');
+  $('scan').hidden = !(kind === 'wait' || kind === 'rejected'); // le détecteur tourne tant qu'on attend le bon SMS
   $('auto-title').textContent = T[0];
   $('auto-text').textContent = T[1];
   $('auto').hidden = false;
+}
+
+function hideOutcome() {
+  $('auto').hidden = true;
+  $('scan').hidden = true;
+  $('receipt').hidden = true;
+  $('receipt').replaceChildren();
+  $('verdict').hidden = true;
 }
 
 function stopPoll() {
@@ -715,14 +723,88 @@ function finish(kind, reason) {
   disarmNative();
   wipeSecrets();
   [1, 2, 3].forEach((i) => ($('step-' + i).hidden = true));
-  $('auto').hidden = true;
+  hideOutcome();
+  if (kind === 'confirmed') return showReceipt();
   if (payment?.k === 'subscription') {
-    if (kind === 'confirmed') showVerdict('ok', 'Abonnement activé', 'Paiement vérifié : votre licence est activée ou prolongée. Revenez à votre espace vendeur pour voir la date d’expiration.');
-    else showVerdict('warn', 'Paiement reçu, en attente de validation', 'Votre paiement est enregistré. L’administrateur le validera : la licence sera alors activée.');
+    showVerdict('warn', 'Paiement reçu, en attente de validation', 'Votre paiement est enregistré. L’administrateur le validera : la licence sera alors activée.');
     return;
   }
-  if (kind === 'confirmed') showVerdict('ok', 'Paiement confirmé', 'Le SMS de l’opérateur correspond : montant, bénéficiaire et numéro expéditeur. Le vendeur est informé.');
-  else showVerdict('warn', 'Paiement reçu, à vérifier par le vendeur', CHECK_TEXT[reason] || 'Le vendeur vérifiera sur son compte avant de livrer.');
+  showVerdict('warn', 'Paiement reçu, à vérifier par le vendeur', CHECK_TEXT[reason] || 'Le vendeur vérifiera sur son compte avant de livrer.');
+}
+
+/* Reçu « Opération réussie » (construit avec le DOM : aucune donnée n'est insérée en HTML) */
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
+const maskNumber = (n) => {
+  const d = String(n || '').replace(/\D/g, '');
+  return d.length >= 6 ? `${d.slice(0, 2)} •• •• ${d.slice(-2)}` : '';
+};
+function receiptInfo() {
+  const sub = payment.k === 'subscription';
+  const op = operatorLabel(chosenOp);
+  const when = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
+  return {
+    sub, op, when,
+    ref: 'MP-' + String(payment.id).slice(0, 8).toUpperCase(),
+    amount: `${formatAmount(payment.a)} ${CONFIG.currency}`,
+    payer: maskNumber(store.get().payer),
+  };
+}
+function showReceipt() {
+  const i = receiptInfo();
+  const box = $('receipt');
+  box.replaceChildren();
+
+  const medal = el('div', 'rc-medal');
+  medal.setAttribute('aria-hidden', 'true');
+  medal.innerHTML = '<i class="rc-ring r1"></i><i class="rc-ring r2"></i><i class="rc-spark s1"></i><i class="rc-spark s2"></i><i class="rc-spark s3"></i><i class="rc-spark s4"></i>'
+    + '<svg viewBox="0 0 52 52" class="rc-check"><circle cx="26" cy="26" r="23"/><path d="M15 27.5l8 8 15-17"/></svg>';
+  box.appendChild(medal);
+
+  box.appendChild(el('h2', 'rc-title', i.sub ? 'Abonnement activé !' : 'Opération réussie !'));
+  box.appendChild(el('p', 'rc-sub', i.sub ? 'Paiement vérifié : votre licence est activée ou prolongée.' : 'Paiement effectué avec succès'));
+  box.appendChild(el('p', 'rc-to', i.sub ? 'Abonnement MAYA-PAY' : 'Votre paiement à'));
+  if (!i.sub) box.appendChild(el('p', 'rc-merchant', payment.n));
+  box.appendChild(el('p', 'rc-amount', i.amount));
+
+  const cols = el('div', 'rc-cols');
+  const c1 = el('div', 'rc-col');
+  c1.append(el('span', 'rc-k', 'Bénéficiaire'), el('strong', 'rc-v', i.sub ? 'MAYA-PAY' : payment.n), el('span', 'rc-s', i.op));
+  const c2 = el('div', 'rc-col');
+  c2.append(el('span', 'rc-k', 'Expéditeur'), el('strong', 'rc-v', i.payer || 'Vous'), el('span', 'rc-s', i.op));
+  cols.append(c1, c2);
+  box.appendChild(cols);
+
+  const st = el('p', 'rc-status');
+  st.append(el('i', 'rc-dot'), document.createTextNode(' Complété'));
+  box.appendChild(st);
+  box.appendChild(el('p', 'rc-date', i.when));
+
+  const foot = el('div', 'rc-foot');
+  foot.append(el('span', null, `Référence : ${i.ref}`));
+  box.appendChild(foot);
+
+  const share = el('button', 'btn primary block rc-btn', 'Partager le reçu');
+  share.type = 'button';
+  share.addEventListener('click', async () => {
+    const text = [i.sub ? 'Abonnement MAYA-PAY : opération réussie' : `Paiement réussi à ${payment.n}`, `Montant : ${i.amount}`, `Opérateur : ${i.op}`, `Date : ${i.when}`, `Référence : ${i.ref}`].join('\n');
+    try {
+      if (navigator.share) await navigator.share({ title: 'Reçu MAYA-PAY', text });
+      else { await navigator.clipboard.writeText(text); toast('Reçu copié.'); }
+    } catch { /* partage annulé */ }
+  });
+  const done = el('button', 'btn secondary block rc-btn', 'Terminé');
+  done.type = 'button';
+  done.addEventListener('click', () => { location.hash = '#/'; });
+  box.append(share, done);
+
+  box.hidden = false;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  try { navigator.vibrate?.([60, 40, 90]); } catch { /* ignoré */ }
 }
 
 function startPoll(op) {
