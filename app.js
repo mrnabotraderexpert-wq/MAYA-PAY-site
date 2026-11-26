@@ -43,6 +43,8 @@ const store = {
 function show(id) {
   views.forEach((v) => ($(v).hidden = v !== id));
   window.scrollTo(0, 0);
+  // Application Android : l'espace vendeur est protégé par le verrou du téléphone.
+  try { window.MayaNative?.setScreen?.(id); } catch { /* ignoré */ }
 }
 
 // Photo / logo : recadrée en carré, réduite et convertie en JPEG sur le téléphone, puis stockée côté serveur avec le lien.
@@ -613,6 +615,7 @@ async function pay(op) {
   // Détection automatique du SMS : l'application surveille le SMS de l'opérateur choisi pendant 10 minutes.
   if (inApp() && typeof window.MayaNative.armSms === 'function') {
     try { window.MayaNative.armSms(payment.id, op, session.sms, 10); } catch { /* ignoré */ }
+    try { window.MayaNative.setSecure?.(true); } catch { /* ignoré */ } // pas de capture d'écran pendant la session
     startPoll(op);
   } else {
     setAuto('noapp');
@@ -622,6 +625,7 @@ async function pay(op) {
 
 function disarmNative() {
   try { window.MayaNative?.disarmSms?.(); } catch { /* ignoré */ }
+  try { window.MayaNative?.setSecure?.(false); } catch { /* ignoré */ } // le reçu peut être capturé
 }
 
 // Un site web ne peut pas lancer l'appel lui-même : le lien tel: ouvre le composeur avec le code
@@ -879,3 +883,11 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 route();
+
+// Application Android : bouton « Scanner un QR de paiement » (lecteur de QR du téléphone).
+(() => {
+  const b = document.getElementById('scan-qr');
+  if (!b || !window.MayaNative || typeof window.MayaNative.scanQr !== 'function') return;
+  b.hidden = false;
+  b.addEventListener('click', () => { try { window.MayaNative.scanQr(); } catch { /* ignoré */ } });
+})();

@@ -43,7 +43,7 @@ export const CONFIG = {
   // apkUrl : adresse de l'APK (fichier à la racine du dépôt, ou lien GitHub Releases).
   app: {
     required: true,
-    apkUrl: 'MAYA-PAY.apk',
+    apkUrl: 'maya-pay.apk',
     androidPackage: 'com.mayapay.app',
   },
 

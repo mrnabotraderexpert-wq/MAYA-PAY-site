@@ -10,7 +10,7 @@ Application web (PWA) **réservée au téléphone**. Le vendeur crée un lien et
 - **Client** : un bouton **Payer avec …** par opérateur,  parmi les opérateurs pour lesquels le vendeur a saisi un numéro (**Orange Money** et/ou **Moov Money**), puis le composeur du téléphone s'ouvre avec le code prêt. L'opérateur demande ensuite le code PIN.
 - **Session de 2 minutes** : un compte à rebours s'affiche. À zéro, le code est effacé et la session se ferme (la page tente de se fermer ; sinon elle affiche « Session fermée »). Si l'opération n'est pas terminée, le client l'ouvre.
 - **Confirmation 100 % automatique** : le client choisit son opérateur, saisit le numéro avec lequel il envoie l'argent, paie ; l'application Android lit le SMS de l'opérateur et le serveur décide. Il n'y a plus de saisie de SMS ni de capture d'écran.
-- **Android hors application** : le client voit « Télécharger l’application » (et « ouvrir ce paiement » s’il l’a déjà) au lieu des boutons Payer. Déposez l’APK à la racine du dépôt sous le nom `MAYA-PAY.apk` (ou changez `app.apkUrl` dans `config.js`).
+- **Android hors application** : le client voit « Télécharger l’application » (et « ouvrir ce paiement » s’il l’a déjà) au lieu des boutons Payer. Déposez l’APK à la racine du dépôt sous le nom `maya-pay.apk` (en minuscules) (ou changez `app.apkUrl` dans `config.js`).
 - **Ordinateur** : un écran demande d'ouvrir MAYA-PAY sur un téléphone.
 
 ## Masquage du numéro et des formules
@@ -113,3 +113,8 @@ Fichiers à envoyer sur GitHub : tous ceux du zip (nouveaux : `admin.html`, `adm
 - Pour l'enrichir : ajoutez un thème dans le tableau `KB` d'`assistant.js` (`id`, `title`, `kw`, `a`, `next`). Testez avec `node` : `import { answer } from './assistant.js'`.
 - La bulle devient ronde (icône seule) sur la page de paiement pour ne plus recouvrir « Payer ».
 - Fichiers : `assistant.js` (nouveau) ; modifiés : `support.js`, `sw.js`, `privacy.html`, `README.md`.
+
+## v1.22 / v1.23 – Application Android 1.17 / 1.18
+- Le site appelle l'application : verrou de l'espace vendeur (`setScreen`), écran protégé pendant le paiement (`setSecure`), bouton « Scanner un QR de paiement » (`scanQr`).
+- `android-version.json` : l'application le lit pour proposer la mise à jour ; augmentez `versionCode` à chaque nouvelle version et déposez l'APK à la racine sous le nom `maya-pay.apk` (minuscules).
+- v1.23 : `sw.js` réécrit (il était vide dans la v1.22) ; nom de l'APK unifié en `maya-pay.apk` (`config.js`, `index.html`). Le cache est renouvelé automatiquement.
