@@ -665,6 +665,8 @@ document.addEventListener('visibilitychange', () => {
 /* Confirmation automatique : suivi du résultat décidé par le serveur */
 const REASONS = {
   failure_message: 'Le SMS indique que le transfert a échoué : rien n’est confirmé.',
+  wrong_pin: 'Code secret incorrect. Relance le paiement.',
+  insufficient_balance: (op) => `Solde insuffisant sur ton compte ${op}.`,
   not_a_confirmation: 'Ce SMS n’est pas reconnu comme une confirmation de transfert.',
   amount_mismatch: 'Le montant du SMS ne correspond pas au montant demandé.',
   recipient_mismatch: 'Le bénéficiaire du SMS n’est pas celui du vendeur.',
@@ -679,6 +681,8 @@ const REASONS = {
   no_session: 'Ouvrez d’abord le paiement avec le bouton « Payer ».',
   invalid_link: 'Lien expiré ou invalide.',
 };
+// Échecs précis indiqués par le SMS de l’opérateur : message dédié, sans « MAYA-PAY continue d’attendre ».
+const SPECIFIC_FAILS = new Set(['wrong_pin', 'insufficient_balance']);
 const CHECK_TEXT = {
   sender_unverified: 'Votre numéro n’a pas pu être vérifié automatiquement : le SMS ne le mentionne pas et le téléphone ne le communique pas. Le vendeur vérifiera sur son compte avant de livrer.',
   format_unverified: 'Le SMS est dans un format que MAYA-PAY ne valide pas encore seul. Le vendeur vérifiera sur son compte avant de livrer.',
@@ -689,7 +693,9 @@ function setAuto(kind, reason) {
   const T = {
     wait: ['En attente du SMS de confirmation…', `Gardez le téléphone allumé. Dès que le SMS ${op} arrive, le paiement est vérifié automatiquement : vous n’avez rien à faire.`],
     perm: ['Autorisation SMS manquante', 'Autorisez MAYA-PAY à lire les SMS (Paramètres du téléphone > Applications > MAYA-PAY > Autorisations), puis relancez le paiement.'],
-    rejected: ['SMS reçu, paiement non confirmé', `${REASONS[reason] || 'Ce SMS ne correspond pas à ce paiement.'} MAYA-PAY continue d’attendre le bon SMS.`],
+    rejected: SPECIFIC_FAILS.has(reason)
+      ? ['Paiement non confirmé', typeof REASONS[reason] === 'function' ? REASONS[reason](op) : REASONS[reason]]
+      : ['SMS reçu, paiement non confirmé', `${REASONS[reason] || 'Ce SMS ne correspond pas à ce paiement.'} MAYA-PAY continue d’attendre le bon SMS.`],
     timeout: ['Aucun SMS de confirmation reçu', 'Si vous avez payé, le vendeur vérifiera la réception sur son compte. Sinon, rouvrez le paiement.'],
     noapp: ['Confirmation automatique indisponible', 'Elle fonctionne dans l’application MAYA-PAY (Android). Le vendeur vérifiera la réception sur son compte.'],
   }[kind];
