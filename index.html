@@ -342,16 +342,18 @@
         </div>
 
         <!-- Détecteur : cercle futuriste pendant la recherche du SMS -->
-        <div id="scan" class="scan" hidden>
+        <div id="scan" class="scan" role="status" aria-live="polite" hidden>
           <div class="radar" aria-hidden="true">
-            <i class="rg rg1"></i><i class="rg rg2"></i><i class="rg rg3"></i>
-            <i class="ax ax-h"></i><i class="ax ax-v"></i>
+            <i class="rg rg1"></i><i class="rg rg3"></i>
             <i class="sweep"></i>
-            <span class="blip b1"></span><span class="blip b2"></span><span class="blip b3"></span>
+            <span class="blip b1"></span><span class="blip b2"></span>
             <span class="core"><svg class="ic"><use href="#i-sms"/></svg></span>
           </div>
-          <p class="scan-label">Détection du SMS en cours<span class="dots" aria-hidden="true"></span></p>
-          <p class="scan-sub">Analyse du message de votre opérateur…</p>
+          <div class="scan-body">
+            <p class="scan-label">Détection du SMS en cours<span class="dots" aria-hidden="true"></span></p>
+            <p class="scan-sub">Analyse du message de votre opérateur</p>
+          </div>
+          <i class="scan-bar" aria-hidden="true"></i>
         </div>
 
         <!-- Reçu : opération réussie -->

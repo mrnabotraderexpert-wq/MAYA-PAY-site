@@ -695,10 +695,12 @@ function setAuto(kind, reason) {
     rejected: SPECIFIC_FAILS.has(reason)
       ? ['Paiement non confirmé', typeof REASONS[reason] === 'function' ? REASONS[reason](op) : REASONS[reason]]
       : ['SMS reçu, paiement non confirmé', `${REASONS[reason] || 'Ce SMS ne correspond pas à ce paiement.'} MAYA-PAY continue d’attendre le bon SMS.`],
+    success: ['Paiement confirmé', 'Le SMS de votre opérateur a été vérifié : votre paiement est validé.'],
     timeout: ['Aucun SMS de confirmation reçu', 'Si vous avez payé, le vendeur vérifiera la réception sur son compte. Sinon, rouvrez le paiement.'],
     noapp: ['Confirmation automatique indisponible', 'Elle fonctionne dans l’application MAYA-PAY (Android). Le vendeur vérifiera la réception sur son compte.'],
   }[kind];
-  $('auto').className = 'auto ' + (kind === 'wait' ? 'wait' : kind === 'rejected' || kind === 'perm' ? 'bad' : '');
+  // rouge = échec, vert = succès, sombre = attente
+  $('auto').className = 'auto ' + (kind === 'wait' ? 'wait' : kind === 'success' ? 'ok' : ['rejected', 'perm', 'timeout'].includes(kind) ? 'bad' : '');
   $('scan').hidden = !(kind === 'wait' || kind === 'rejected'); // le détecteur tourne tant qu'on attend le bon SMS
   $('auto-title').textContent = T[0];
   $('auto-text').textContent = T[1];
@@ -724,7 +726,10 @@ function finish(kind, reason) {
   wipeSecrets();
   [1, 2, 3].forEach((i) => ($('step-' + i).hidden = true));
   hideOutcome();
-  if (kind === 'confirmed') return showReceipt();
+  if (kind === 'confirmed') {
+    setAuto('success'); // panneau vert au-dessus du reçu
+    return showReceipt();
+  }
   if (payment?.k === 'subscription') {
     showVerdict('warn', 'Paiement reçu, en attente de validation', 'Votre paiement est enregistré. L’administrateur le validera : la licence sera alors activée.');
     return;
