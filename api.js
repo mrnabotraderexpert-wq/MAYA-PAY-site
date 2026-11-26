@@ -32,7 +32,9 @@ export const createLink = (v) => rpc('mayapay_create_v3', { p_name: v.n, p_numbe
 export const getLink = (id) => rpc('mayapay_get', { p_id: id });
 // Ouvre une session de 2 minutes : retourne le code complet, seulement à ce moment-là.
 // Le numéro du client (celui qui paie) est obligatoire : il est rapproché du SMS de confirmation.
-export const startSession = (id, operator, payer) => rpc('mayapay_start_v2', { p_id: id, p_operator: operator, p_payer: payer });
+// Consentement obligatoire (case cochée) : enregistré avec la session (date + version de la politique).
+export const CONSENT_VERSION = '2026-11-26';
+export const startSession = (id, operator, payer) => rpc('mayapay_start_v3', { p_id: id, p_operator: operator, p_payer: payer, p_consent: true, p_version: CONSENT_VERSION });
 // Résultat de la confirmation automatique (décidée par le serveur à partir du SMS lu par l'application) : null tant que rien n'est reçu.
 export const smsResult = (id) => rpc('mayapay_sms_result', { p_id: id });
 // Suivi vendeur (clé privée).

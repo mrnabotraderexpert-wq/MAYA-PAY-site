@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { validatePayment, validatePayer, parseHash, formatAmount, normalizeNumber } from './link.js';
-import { serverReady, validId, validKey, createLink, getLink, startSession, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
+import { serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 
 const $ = (id) => document.getElementById(id);
@@ -534,6 +534,10 @@ function showPay(p) {
   $('warn-name').textContent = p.n;
   $('f-payer').value = store.get().payer || '';
   $('e-payer').textContent = '';
+  const cs = store.get().consent;
+  $('f-consent').checked = Boolean(cs && cs.v === CONSENT_VERSION);
+  renderConsentNote();
+  $('e-consent').textContent = '';
   $('payer-box').hidden = true;
   $('verdict').hidden = true;
   $('auto').hidden = true;
@@ -553,6 +557,20 @@ async function loadPay(id) {
   invalid();
 }
 
+// Consentement mémorisé sur le téléphone (version de la politique + date) : le client ne recoche pas à chaque paiement.
+// Décocher le retire ; une nouvelle version de la politique le redemande.
+function renderConsentNote() {
+  const cs = store.get().consent;
+  const ok = $('f-consent').checked && cs && cs.v === CONSENT_VERSION;
+  const note = $('c-saved');
+  note.hidden = !ok;
+  if (ok) note.textContent = 'Déjà accepté le ' + new Date(cs.at).toLocaleDateString('fr-FR') + '. Décochez pour retirer votre accord.';
+}
+$('f-consent').addEventListener('change', () => {
+  if ($('f-consent').checked) $('e-consent').textContent = '';
+  else store.set({ consent: null });
+  renderConsentNote();
+});
 $('reopen').addEventListener('click', () => { stopPoll(); disarmNative(); $('auto').hidden = true; $('verdict').hidden = true; step(1); });
 
 async function pay(op) {
@@ -566,7 +584,15 @@ async function pay(op) {
   }
   $('e-payer').textContent = '';
   $('f-payer').setAttribute('aria-invalid', 'false');
-  store.set({ payer: payer.value });
+  if (!$('f-consent').checked) {
+    $('e-consent').textContent = 'Cochez la case pour confirmer avant de payer.';
+    $('f-consent').focus();
+    return;
+  }
+  $('e-consent').textContent = '';
+  const prev = store.get().consent;
+  store.set({ payer: payer.value, consent: prev && prev.v === CONSENT_VERSION ? prev : { v: CONSENT_VERSION, at: Date.now() } });
+  renderConsentNote();
   $('verdict').hidden = true;
   setOpsDisabled(true);
   let r;
@@ -574,6 +600,7 @@ async function pay(op) {
     r = await startSession(payment.id, op, payer.value);
   } catch (err) {
     setOpsDisabled(false);
+    if (err.code === 'consent_required') { $('e-consent').textContent = 'Cochez la case pour confirmer avant de payer.'; return $('f-consent').focus(); }
     if (err.code === 'invalid_payer') { $('e-payer').textContent = 'Numéro invalide.'; return $('f-payer').focus(); }
     return toast(err.code === 'rate_limited' ? 'Trop de tentatives sur ce lien. Réessayez plus tard.' : err.code === 'operator_unavailable' ? 'Ce vendeur n’accepte pas cet opérateur.' : 'Lien expiré ou connexion impossible. Réessayez.');
   }

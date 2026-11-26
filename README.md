@@ -94,3 +94,22 @@ MIT.
 Tables : `mayapay.settings`, `licenses`, `sub_payments`, `license_log` (journal des activations et actions admin), `admin_secret`. Pour consulter le journal : `select * from mayapay.license_log order by at desc;`.
 
 Fichiers à envoyer sur GitHub : tous ceux du zip (nouveaux : `admin.html`, `admin.js`, `admin.css` ; modifiés : `app.js`, `api.js`, `index.html`, `style.css`, `sw.js`, `README.md`).
+
+## v1.14 – Politique de confidentialité
+- Nouvelle page `privacy.html` (politique de confidentialité + conditions d'utilisation), liée depuis le pied de page. URL à fournir au Play Store : `https://votre-site/privacy.html`.
+- À personnaliser avant publication : l'adresse e-mail de contact (section 13). Vérifiez aussi que la durée de conservation annoncée (liens supprimés 30 jours après expiration) correspond à votre pratique.
+- Fichier à envoyer sur GitHub : `privacy.html` (nouveau) ; modifiés : `index.html`, `sw.js`, `README.md`.
+
+## v1.15 – Case de consentement avant « Payer »
+- Le client doit cocher une case (« Je lance moi-même ce paiement… », lien vers `privacy.html`) avant que « Payer » n'ouvre la session. Case décochée à chaque nouveau paiement ; sans elle, un message d'erreur s'affiche et rien n'est envoyé au serveur.
+- Fichiers modifiés : `index.html`, `app.js`, `style.css`, `sw.js`, `README.md`.
+- **Preuve côté serveur** : `mayapay_start_v3` refuse la session sans consentement (`consent_required`) et enregistre `starts.consent_at` + `starts.consent_version` (migration `mayapay_consent_start_v3`). `mayapay_start_v2` reste en place pour les anciens clients ; vous pouvez la retirer quand tout le monde a la v1.15+ : `revoke execute on function public.mayapay_start_v2(text,text,text) from anon, authenticated, public;`
+- **Message « le client initie »** ajouté : écran vendeur (sous l'intro), page de paiement du client, pied de page, `privacy.html`. Fichiers : `index.html`, `privacy.html`, `style.css`, `sw.js`.
+- **Consentement mémorisé** : après un premier paiement, la case reste cochée sur ce téléphone (version + date dans `mayapay.vendor`), avec la mention « Déjà accepté le … ». Décocher retire l'accord ; une nouvelle `CONSENT_VERSION` (api.js) le redemande. Le serveur enregistre quand même le consentement à chaque session (`starts.consent_at`).
+
+## v1.16 – Assistant intelligent local
+- La bulle « Assistance » a maintenant deux onglets : **Assistant** (réponses immédiates) et **Équipe** (messagerie existante).
+- L'assistant (`assistant.js`) tourne **entièrement dans le téléphone, sans API externe** : normalisation du français (accents, pluriels, fautes), synonymes, score par thème, suggestions cliquables, puis passage à l'équipe (la question est pré-remplie) quand il ne sait pas. Rien n'est envoyé ni enregistré.
+- Pour l'enrichir : ajoutez un thème dans le tableau `KB` d'`assistant.js` (`id`, `title`, `kw`, `a`, `next`). Testez avec `node` : `import { answer } from './assistant.js'`.
+- La bulle devient ronde (icône seule) sur la page de paiement pour ne plus recouvrir « Payer ».
+- Fichiers : `assistant.js` (nouveau) ; modifiés : `support.js`, `sw.js`, `privacy.html`, `README.md`.

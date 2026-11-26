@@ -349,3 +349,23 @@ input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(2
 .sb-art { width: 58px; height: 58px; }
 .steps p { font-size: .66rem; }
 @media (min-width: 640px) { .sb-left { font-size: 1.05rem; } .sb-right { font-size: 1rem; } .hero-card .lead { font-size: 1rem; } }
+
+.consent { display: flex; gap: 12px; align-items: flex-start; text-align: left; background: #fff; border: 1.5px solid var(--line); border-left: 4px solid var(--orange); border-radius: 12px; padding: 14px 14px 14px 12px; margin: 6px 0 8px; transition: border-color .15s; }
+.consent input { flex: none; width: 24px; height: 24px; margin: 1px 0 0; accent-color: var(--orange); cursor: pointer; }
+.consent label { display: block; cursor: pointer; font-weight: 400; }
+.consent .c-main { display: block; font-weight: 700; font-size: .9375rem; line-height: 1.35; color: var(--ink); margin-bottom: 4px; }
+.consent .c-sub { display: block; font-size: .8125rem; line-height: 1.45; color: var(--mute); }
+.consent a { color: var(--orange-d); font-weight: 600; }
+.consent:has(input:checked) { border-color: var(--ok); background: #F2FBF6; }
+.consent:has(+ #e-consent:not(:empty)) { border-color: var(--bad); border-left-color: var(--bad); background: #FFF6F5; }
+#e-consent { margin: 0 0 10px; }
+.initiates { margin: 4px 0 18px; padding: 10px 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-size: .875rem; line-height: 1.4; }
+.initiates .ic { color: var(--orange-d); width: 18px; height: 18px; }
+.consent .c-body { flex: 1; min-width: 0; }
+.consent .c-more { margin-top: 6px; font-size: .8125rem; color: var(--mute); }
+.consent .c-more summary { cursor: pointer; color: var(--orange-d); font-weight: 600; list-style: none; padding: 4px 0; }
+.consent .c-more summary::-webkit-details-marker { display: none; }
+.consent .c-more summary::after { content: " ▾"; }
+.consent .c-more[open] summary::after { content: " ▴"; }
+.consent .c-more p { margin: 4px 0 0; line-height: 1.45; }
+.consent .c-saved { margin: 6px 0 0; font-size: .75rem; color: var(--ok); font-weight: 600; }

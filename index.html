@@ -92,6 +92,7 @@
                 <p class="lead">Votre client paie depuis son compte Orange Money ou Moov Money vers le vôtre. L'argent ne passe jamais par MAYA-PAY.</p>
               </div>
             </div>
+            <p class="fine initiates"><svg class="ic"><use href="#i-shield"/></svg><span><strong>Le client initie, pas MAYA-PAY.</strong> MAYA-PAY prépare seulement le code ; c’est le client qui le valide avec son code PIN.</span></p>
             <div class="sarali-title"><svg class="ic"><use href="#i-bolt"/></svg><h2>Activation Sarali</h2></div>
             <div class="sarali-banner">
               <p class="sb-left">Avant de fournir votre numéro, veuillez l’enregistrer comme numéro marchand.</p>
@@ -286,6 +287,18 @@
             <input id="f-payer" name="payer" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" required aria-describedby="h-payer e-payer">
             <p class="hint" id="h-payer">Obligatoire. MAYA-PAY le compare au numéro de l’expéditeur du SMS de confirmation : si les numéros ne correspondent pas, le paiement n’est pas validé.</p>
             <p class="err" id="e-payer" role="alert"></p>
+            <div class="consent">
+              <input id="f-consent" type="checkbox" aria-describedby="e-consent">
+              <div class="c-body">
+                <label for="f-consent"><span class="c-main">Je lance moi-même ce paiement depuis mon compte Mobile Money.</span><span class="c-sub">J’accepte la <a href="privacy.html" target="_blank" rel="noopener">politique de confidentialité</a> et la lecture du SMS de confirmation de mon opérateur.</span></label>
+                <p class="c-saved" id="c-saved" hidden></p>
+                <details class="c-more">
+                  <summary>En savoir plus</summary>
+                  <p>Le client initie le paiement : MAYA-PAY prépare seulement le code, et vous le validez avec votre code PIN. MAYA-PAY ne détient pas votre argent, ne le fait pas transiter et ne garantit pas le vendeur.</p>
+                </details>
+              </div>
+            </div>
+            <p class="err" id="e-consent" role="alert"></p>
             <button id="go-pay" class="btn primary block big" type="button">Payer</button>
           </div>
           <div id="app-gate" class="gate" hidden>
@@ -296,7 +309,7 @@
             <a id="apk-link" class="btn secondary block" href="MAYA-PAY.apk" download>Télécharger l’application</a>
             <p class="muted small-note">Après le téléchargement, ouvrez le fichier. Si le téléphone le demande, autorisez l’installation d’applications depuis cette source.</p>
           </div>
-          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span>Votre opérateur vous demandera de confirmer avec votre code PIN : MAYA-PAY ne le connaît jamais. Le bénéficiaire affiché doit être <strong id="warn-name"></strong>.</span></p>
+          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span><strong>C’est vous qui lancez le paiement.</strong> MAYA-PAY prépare seulement le code ; votre opérateur vous demandera de le valider avec votre code PIN, que MAYA-PAY ne connaît jamais. Le bénéficiaire affiché doit être <strong id="warn-name"></strong>.</span></p>
           <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Premier paiement : testez toujours avec un petit montant.</span></p>
         </div>
 
@@ -342,7 +355,8 @@
 
   <footer class="foot">
     <p><strong>MAYA-PAY n'est pas un agrégateur de paiement.</strong> C'est un simple raccourci de lien qui facilite les paiements mobiles. MAYA-PAY ne détient ni ne stocke aucun argent et ne garantit pas les produits ou services du vendeur. Faites toujours un premier test avec un petit montant.</p>
-    <p>Le paiement est effectué par Orange Money ou Moov Money, de compte à compte.</p>
+    <p>Le paiement est effectué par Orange Money ou Moov Money, de compte à compte. <strong>Le client initie le paiement :</strong> MAYA-PAY prépare le code, le client le valide avec son code PIN.</p>
+    <p><a href="privacy.html" style="color:#fff">Politique de confidentialité et conditions d'utilisation</a></p>
   </footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script type="module" src="app.js"></script>
