@@ -77,8 +77,8 @@ export const KB = [
     next: ['quoi', 'vieprivee'] },
 
   { id: 'session', title: 'La session de 2 minutes',
-    kw: ['session', '2 minutes', 'deux minutes', 'compte a rebours', 'temps', 'session fermee', 'code efface', 'rouvrir', 'rouvrir operation', 'relancer', 'minuteur', 'timer'],
-    a: 'Après « Payer », une session de 2 minutes s’ouvre avec un compte à rebours. À zéro, le code est effacé et la session se ferme : c’est une protection.\n\nSi l’opération n’est pas terminée, appuyez sur « Rouvrir une opération » (ou « Relancer le paiement ») pour recommencer. Un lien peut être ouvert 20 fois par heure au maximum.',
+    kw: ['session', '2 minutes', 'deux minutes', 'compte a rebours', 'temps', 'session fermee', 'code efface', 'rouvrir', 'rouvrir operation', 'ouvrir operation', 'ouvrir', 'relancer', 'minuteur', 'timer'],
+    a: 'Après « Payer », une session de 2 minutes s’ouvre avec un compte à rebours. À zéro, le code est effacé et la session se ferme : c’est une protection.\n\nSi l’opération n’est pas terminée, appuyez sur « Ouvrir une opération » (ou « Relancer le paiement ») pour recommencer. Un lien peut être ouvert 20 fois par heure au maximum.',
     next: ['payer', 'confirmation'] },
 
   { id: 'confirmation', title: 'La confirmation automatique',

@@ -696,7 +696,7 @@ function setAuto(kind, reason) {
       ? ['Paiement non confirmé', typeof REASONS[reason] === 'function' ? REASONS[reason](op) : REASONS[reason]]
       : ['SMS reçu, paiement non confirmé', `${REASONS[reason] || 'Ce SMS ne correspond pas à ce paiement.'} MAYA-PAY continue d’attendre le bon SMS.`],
     success: ['Paiement confirmé', 'Le SMS de votre opérateur a été vérifié : votre paiement est validé.'],
-    timeout: ['Aucun SMS de confirmation reçu', 'Si vous avez payé, le vendeur vérifiera la réception sur son compte. Sinon, rouvrez le paiement.'],
+    timeout: ['Aucun SMS de confirmation reçu', 'Si vous avez payé, le vendeur vérifiera la réception sur son compte. Sinon, ouvrez le paiement.'],
     noapp: ['Confirmation automatique indisponible', 'Elle fonctionne dans l’application MAYA-PAY (Android). Le vendeur vérifiera la réception sur son compte.'],
   }[kind];
   // rouge = échec, vert = succès, sombre = attente
