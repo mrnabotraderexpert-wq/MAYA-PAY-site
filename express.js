@@ -3,7 +3,7 @@
 // du vendeur (comme pour les liens de paiement) et crée le lien de paiement. Le paiement lui-même reste celui de MAYA-PAY.
 import { CONFIG } from './config.js';
 import { formatAmount, normalizeNumber } from './link.js';
-import { validId, validKey, expressSave, expressGet, expressOrder, expressOrders } from './api.js';
+import { validId, validKey, expressSave, expressProfileSave, expressGet, expressOrder, expressOrders } from './api.js';
 import { drawQr } from './qr.js';
 
 const $ = (id) => document.getElementById(id);
@@ -32,7 +32,7 @@ export function initExpress(c) {
   ctx = c;
   setupVendor();
   setupShop();
-  return { render, openShop, openOrders, stop: stopExpress };
+  return { render, openShop, openOrders, stop: stopExpress, importItems, importProfile };
 }
 
 /* ---------- Espace vendeur : mes produits, ma vitrine ---------- */
@@ -135,6 +135,77 @@ function sync() {
   keep({ products: draft() });
 }
 
+// Ajoute des produits importés (déjà nettoyés) au catalogue : ignore les doublons (même nom et même prix) et respecte le maximum.
+function importItems(items) {
+  const list = $('x-lines');
+  for (const li of [...list.children]) {
+    if (!li.querySelector('.x-name').value.trim() && !li.querySelector('.x-price').value.trim() && !li._ph) li.remove();
+  }
+  const seen = new Set([...list.children].map((li) => clean(li.querySelector('.x-name').value).toLowerCase() + '|' + toInt(li.querySelector('.x-price').value)));
+  let added = 0;
+  let duplicates = 0;
+  let full = 0;
+  for (const it of items) {
+    const key = clean(it.n).toLowerCase() + '|' + it.p;
+    if (seen.has(key)) { duplicates++; continue; }
+    if (list.children.length >= MAX) { full++; continue; }
+    seen.add(key);
+    addRow(clean(it.n).slice(0, 40), String(it.p), false, it.ph || '');
+    added++;
+  }
+  if (!list.children.length) addRow('', '', false);
+  sync();
+  if (added) openCard();
+  return { added, duplicates, full };
+}
+
+/* ---------- Profil de la vitrine : bannière, slogan, ville, WhatsApp, réseaux sociaux ---------- */
+const BANNER_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
+const PF = { sl: 'xp-slogan', ci: 'xp-city', wa: 'xp-whatsapp', fb: 'xp-facebook', ig: 'xp-instagram', tt: 'xp-tiktok' };
+const profile = () => saved().profile || {};
+function readProfile() {
+  const p = { bn: typeof profile().bn === 'string' && BANNER_RE.test(profile().bn) ? profile().bn : '' };
+  for (const [k, id] of Object.entries(PF)) p[k] = clean($(id).value);
+  return p;
+}
+function paintBanner(bn) {
+  const img = $('xp-banner-img');
+  const ok = typeof bn === 'string' && BANNER_RE.test(bn);
+  if (ok) img.src = bn; else img.removeAttribute('src');
+  img.hidden = !ok;
+  $('xp-banner-del').hidden = !ok;
+  $('xp-banner-pick').textContent = ok ? 'Changer la bannière' : 'Choisir une bannière';
+}
+function fillProfile(p) {
+  for (const [k, id] of Object.entries(PF)) $(id).value = String(p[k] ?? '');
+  paintBanner(p.bn);
+}
+const keepProfile = (patch) => keep({ profile: { ...profile(), ...patch } });
+const syncProfile = () => { const p = readProfile(); keepProfile({ sl: p.sl, ci: p.ci, wa: p.wa, fb: p.fb, ig: p.ig, tt: p.tt }); };
+// Import d'une boutique Boutiki : remplit le profil (déjà nettoyé par le serveur). Retourne les éléments importés.
+function openCard() { const fold = $('express-card').querySelector('details.fold'); if (fold) fold.open = true; }
+function importProfile(p, banner) {
+  const got = [];
+  const next = {};
+  const wa = String(p.wa ?? '').replace(/\D/g, '');
+  if (/^[0-9]{8,15}$/.test(wa)) { next.wa = wa.length === 11 && wa.startsWith('223') ? wa.slice(3) : wa; got.push('WhatsApp'); }
+  if (clean(p.ci)) { next.ci = clean(p.ci).slice(0, 60); got.push('ville'); }
+  if (clean(p.sl)) { next.sl = clean(p.sl).slice(0, 80); got.push('slogan'); }
+  for (const [k, label] of [['fb', 'Facebook'], ['ig', 'Instagram'], ['tt', 'TikTok']]) {
+    const v = clean(p[k]);
+    if (/^https:\/\/[^\s]{4,250}$/.test(v)) { next[k] = v; got.push(label); }
+  }
+  if (typeof banner === 'string' && BANNER_RE.test(banner)) { next.bn = banner; got.push('bannière'); }
+  if (got.length) { openCard(); keepProfile(next); fillProfile(profile()); $('xp-box').open = true; }
+  return got;
+}
+const PROFILE_ERR = {
+  invalid_banner: 'La bannière ne peut pas être utilisée. Changez-la ou retirez-la.',
+  invalid_whatsapp: 'Le numéro WhatsApp est invalide.',
+  invalid_text: 'La ville (60 caractères) ou le slogan (80 caractères) est trop long.',
+  invalid_link: 'Un lien Facebook, Instagram ou TikTok est invalide.',
+};
+
 function renderResult() {
   const s = saved();
   const ok = validId(s.id) && validKey(s.key);
@@ -150,6 +221,7 @@ function renderResult() {
 }
 
 function render() {
+  if (!$('xp-box').dataset.ready) { $('xp-box').dataset.ready = '1'; fillProfile(profile()); }
   if (!$('x-lines').children.length) {
     const list = (saved().products || []).slice(0, MAX);
     if (list.length) for (const r of list) addRow(String(r.n ?? ''), String(r.p ?? ''), false, typeof r.ph === 'string' ? r.ph : '');
@@ -160,6 +232,20 @@ function render() {
 
 function setupVendor() {
   $('x-add').onclick = () => addRow('', '', true);
+  for (const id of Object.values(PF)) $(id).addEventListener('input', syncProfile);
+  $('xp-banner-pick').onclick = () => $('xp-banner-file').click();
+  $('xp-banner-del').onclick = () => { keepProfile({ bn: '' }); paintBanner(''); };
+  $('xp-banner-file').addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) return ctx.toast('Choisissez une image.');
+    try {
+      const bn = await ctx.makeBanner(f);
+      keepProfile({ bn });
+      paintBanner(bn);
+    } catch { ctx.toast('Cette image ne peut pas être utilisée. Essayez une autre image.'); }
+  });
   $('x-lines').addEventListener('input', sync);
   // La touche « Entrée » dans la liste ne doit pas valider le formulaire par erreur.
   $('x-lines').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
@@ -189,12 +275,21 @@ function setupVendor() {
       const r = await expressSave({ id: s.id, key: s.key, n, po, pm, ph: ctx.getPhoto(), products: items.map(({ ph, ...r }) => (ph ? { ...r, i: ph } : r)) });
       if (!r || !validId(r.id) || !validKey(r.key)) throw new Error('bad response');
       keep({ id: r.id, key: r.key, n, products: items.map((i) => ({ n: i.n, p: String(i.p), ph: i.ph || '' })) });
+      let profileErr = '';
+      try {
+        await expressProfileSave({ id: r.id, key: r.key, ...readProfile() });
+      } catch (pe) {
+        profileErr = PROFILE_ERR[pe && pe.code] || 'Le profil de la vitrine n’a pas pu être enregistré. Réessayez.';
+      }
       ctx.toast(s.id ? 'Vitrine mise à jour.' : 'Vitrine créée.');
+      if (profileErr) { err.textContent = 'Vitrine enregistrée, mais ' + profileErr.charAt(0).toLowerCase() + profileErr.slice(1); $('xp-box').open = true; }
       renderResult();
     } catch (e) {
       if (e && e.code === 'license_required') {
         err.textContent = 'Votre licence est expirée : abonnez-vous pour utiliser Maya Express. Vos commandes restent consultables.';
         ctx.refreshSub();
+        const fold = $('sub-card').querySelector('details.fold');
+        if (fold) fold.open = true;
         $('sub-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (e && e.code === 'forbidden') {
         keep({ id: undefined, key: undefined });
@@ -215,6 +310,12 @@ function setupVendor() {
 /* ---------- Page du client : choisir, calculer, payer ---------- */
 let shop = null;
 const qty = new Map();
+// Lien de réseau social : https uniquement et seulement sur le domaine attendu (jamais un lien venu d'ailleurs).
+const socialUrl = (v, domain) => {
+  const s = String(v ?? '').trim();
+  const re = new RegExp('^https://([a-z0-9-]+\\.)*' + domain.replace('.', '\\.') + '(/[^\\s]{0,200})?$', 'i');
+  return s.length <= 250 && re.test(s) ? s : '';
+};
 
 function shopTotal() {
   return shop.products.reduce((s, p) => s + p.p * (qty.get(p.id) || 0), 0);
@@ -230,6 +331,27 @@ function refreshTotal() {
 function renderShop() {
   $('s-name').textContent = shop.name;
   ctx.setAvatar($('s-photo'), shop.photo);
+  const ban = $('s-banner');
+  if (shop.banner) ban.src = shop.banner; else ban.removeAttribute('src');
+  ban.hidden = !shop.banner;
+  $('s-slogan').textContent = shop.slogan;
+  $('s-slogan').hidden = !shop.slogan;
+  $('s-city').textContent = shop.city ? '📍 ' + shop.city : '';
+  $('s-city').hidden = !shop.city;
+  const links = $('s-links');
+  links.replaceChildren();
+  const addLink = (label, href, cls) => {
+    const a = mk('a', cls, label);
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    links.appendChild(a);
+  };
+  if (shop.wa) addLink('WhatsApp', `https://wa.me/${shop.wa}?text=${encodeURIComponent('Bonjour, je vous écris depuis votre boutique ' + shop.name + ' sur Maya Express.')}`, 'wa');
+  if (shop.fb) addLink('Facebook', shop.fb);
+  if (shop.ig) addLink('Instagram', shop.ig);
+  if (shop.tt) addLink('TikTok', shop.tt);
+  links.hidden = !links.children.length;
   $('s-closed').hidden = shop.open;
   $('s-ops').textContent = shop.ops.length ? `Paiement par ${shop.ops.map((o) => OPS[o]).filter(Boolean).join(' ou ')}.` : '';
   const ul = $('s-list');
@@ -273,6 +395,13 @@ export async function openShop(id) {
     id,
     name: String(o.n).slice(0, 40),
     photo: o.p,
+    banner: typeof o.bn === 'string' && BANNER_RE.test(o.bn) && o.bn.length <= 62000 ? o.bn : '',
+    wa: /^[0-9]{8,15}$/.test(String(o.wa ?? '')) ? String(o.wa) : '',
+    city: clean(o.ci).slice(0, 60),
+    slogan: clean(o.sl).slice(0, 80),
+    fb: socialUrl(o.fb, 'facebook.com'),
+    ig: socialUrl(o.ig, 'instagram.com'),
+    tt: socialUrl(o.tt, 'tiktok.com'),
     open: o.open === true,
     ops: Array.isArray(o.ops) ? o.ops.map(String).filter((x) => OPS[x]) : [],
     products: o.products

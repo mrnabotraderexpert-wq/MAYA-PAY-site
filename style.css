@@ -514,3 +514,40 @@ input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(2
 .proofs .o-items li { border: 0; padding: 0; margin: 0; }
 .orders .o-total { font-weight: 700; margin: 6px 0 0; }
 .badge:not(.ok):not(.warn) { background: #E7ECF8; color: var(--mute); }
+
+/* Import d'une boutique Boutiki */
+.import-box { margin: 0 0 18px; padding: 12px 14px; border: 1px dashed #CBD6F2; border-radius: 14px; background: #F7F9FF; }
+.import-box[hidden], #imp-panel[hidden] { display: none; }
+.import-box label { display: block; margin: 12px 0 6px; font-weight: 600; font-size: .9rem; color: var(--navy); }
+.imp-row { display: flex; gap: 8px; align-items: center; }
+.imp-row input { flex: 1; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #CFC8BE; border-radius: 12px; font: inherit; background: #fff; }
+.imp-row .btn { flex: none; }
+.imp-ok { color: #1B7A46; }
+#imp-msg:empty { display: none; }
+
+/* Maya Express : profil de la vitrine (bannière, slogan, ville, WhatsApp, réseaux) */
+.xp-box { border: 1px solid #E1DACF; border-radius: 14px; padding: 10px 12px; margin: 0 0 14px; background: #fff; }
+.xp-box summary { cursor: pointer; list-style: none; }
+.xp-box summary::-webkit-details-marker { display: none; }
+.xp-box summary small { display: block; color: var(--mute); }
+.xp-box[open] summary { margin-bottom: 10px; }
+.xp-box .field { text-align: left; margin: 10px 0 0; }
+.xp-box .inp input { padding-left: 14px; }
+.xp-banner img { display: block; width: 100%; aspect-ratio: 8 / 3; object-fit: cover; border-radius: 12px; margin-bottom: 8px; background: #EEE8DE; }
+.xp-banner .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.shop-banner { display: block; width: 100%; aspect-ratio: 8 / 3; object-fit: cover; border-radius: 12px; margin: 0 0 10px; background: #EEE8DE; }
+.shop-slogan { margin: 2px 0 4px; font-style: italic; }
+.shop-links { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.shop-links a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #CFC8BE; background: #fff; color: inherit; text-decoration: none; font-weight: 600; }
+.shop-links a.wa { background: #1B7A46; border-color: #1B7A46; color: #fff; }
+
+/* Sections repliables */
+.fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; border-radius: 10px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::after { content: ""; flex: none; width: 10px; height: 10px; margin-right: 4px; border-right: 3px solid currentColor; border-bottom: 3px solid currentColor; transform: rotate(45deg); transition: transform .2s; }
+.fold[open] > summary::after { transform: rotate(225deg); }
+.fold > summary:focus-visible { outline: 3px solid #F7870F; outline-offset: 2px; }
+.fold > summary h2, .fold > summary .sarali-title { margin: 0; }
+.fold[open] > summary { margin-bottom: 10px; }
+.fold-in { margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) { .fold > summary::after { transition: none; } }

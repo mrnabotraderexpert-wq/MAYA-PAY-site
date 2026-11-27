@@ -43,3 +43,11 @@
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .sub-head { margin-top: 18px; }
 .admin-tag { font-weight: 700; font-size: .8rem; color: #fff; background: var(--navy); border-radius: 999px; padding: 3px 12px; margin-left: 6px; }
+
+/* Petit écran : l'en-tête ne dépasse plus */
+@media (max-width: 480px) {
+  .top { gap: 8px; }
+  .top .brand { min-width: 0; flex: 1 1 auto; }
+  .top .brand img { min-width: 0; max-width: 170px; height: auto; }
+  .top #logout { flex: none; padding: 6px 8px; font-size: .8rem; }
+}

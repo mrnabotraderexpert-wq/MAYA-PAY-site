@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali</title>
   <meta name="description" content="MAYA-PAY : créez et partagez un lien pour faciliter les paiements Orange Money et Moov Money au Mali. De compte à compte, sans que MAYA-PAY détienne l'argent.">
@@ -119,7 +120,8 @@
               </div>
             </div>
             <p class="fine initiates"><svg class="ic"><use href="#i-shield"/></svg><span><strong>Le client initie, pas MAYA-PAY.</strong> MAYA-PAY prépare seulement le code ; c’est le client qui le valide avec son code PIN.</span></p>
-            <div class="sarali-title"><svg class="ic"><use href="#i-bolt"/></svg><h2>Activation Sarali</h2></div>
+            <details class="fold fold-in">
+              <summary><span class="sarali-title"><svg class="ic"><use href="#i-bolt"/></svg><h2>Activation Sarali</h2></span></summary>
             <div class="sarali-banner">
               <p class="sb-left">Avant de fournir votre numéro, veuillez l’enregistrer comme numéro marchand.</p>
               <svg class="sb-art" viewBox="0 0 80 80" aria-hidden="true"><use href="#i-shop-phone"/></svg>
@@ -171,7 +173,22 @@
                 <p>4. Votre numéro de téléphone devient utilisable comme code marchand.</p>
               </li>
             </ol>
+            </details>
           </article>
+
+          <div class="import-box">
+            <button id="imp-toggle" class="btn secondary small" type="button" aria-expanded="false" aria-controls="imp-panel"><svg class="ic"><use href="#i-store"/></svg>Importer ma boutique Boutiki</button>
+            <div id="imp-panel" hidden>
+              <label for="imp-slug">Adresse ou nom court de votre boutique</label>
+              <div class="imp-row">
+                <input id="imp-slug" type="text" inputmode="url" autocapitalize="none" autocomplete="off" spellcheck="false" maxlength="200" placeholder="ma-boutique">
+                <button id="imp-go" class="btn primary small" type="button">Importer</button>
+              </div>
+              <p class="hint">Le nom, les numéros Orange Money et Moov Money et le logo de votre boutique Boutiki remplissent la fiche. Vous pouvez tout modifier avant de créer le lien.</p>
+              <p id="imp-msg" role="status"></p>
+              <button id="imp-prod" class="btn secondary small" type="button" hidden>Importer aussi mes produits (prix et photos)</button>
+            </div>
+          </div>
 
           <form id="form" class="vendor-form" novalidate autocomplete="on">
             <div class="field">
@@ -255,7 +272,8 @@
           </aside>
 
           <section id="sub-card" class="card sub-card" aria-live="polite">
-            <h2>Mon abonnement</h2>
+            <details class="fold">
+              <summary><h2>Mon abonnement</h2></summary>
             <p id="sub-status" class="sub-status"></p>
             <dl class="sub-facts">
               <div><dt>Prix</dt><dd id="sub-price">…</dd></div>
@@ -265,12 +283,31 @@
             <p id="sub-note" class="hint"></p>
             <button id="sub-btn" class="btn primary block" type="button" hidden><svg class="ic"><use href="#i-arrow"/></svg><span id="sub-btn-text">S'abonner</span></button>
             <p id="sub-err" class="err center" role="alert"></p>
+            </details>
           </section>
 
           <section id="express-card" class="card express-card">
-            <h2>Maya Express <span class="opt">Ma vitrine en ligne</span></h2>
+            <details class="fold">
+              <summary><h2>Maya Express <span class="opt">Ma vitrine en ligne</span></h2></summary>
             <p class="hint">Vos clients choisissent leurs produits, le total se calcule tout seul, ils paient par Orange Money ou Moov Money et vous recevez la commande. Inclus dans votre abonnement. Pas de paiement à la livraison.</p>
             <p class="hint">Nom, numéros et photo : ceux du formulaire « Créer un lien de paiement ».</p>
+            <details id="xp-box" class="xp-box">
+              <summary><strong>Profil de ma vitrine</strong> <small>Bannière, WhatsApp, ville, réseaux (facultatif)</small></summary>
+              <div class="xp-banner">
+                <img id="xp-banner-img" alt="" hidden>
+                <div class="actions">
+                  <button id="xp-banner-pick" class="btn secondary small" type="button">Choisir une bannière</button>
+                  <button id="xp-banner-del" class="btn secondary small" type="button" hidden>Retirer</button>
+                </div>
+                <input id="xp-banner-file" type="file" accept="image/*" hidden>
+              </div>
+              <div class="field"><label for="xp-slogan">Slogan</label><div class="inp"><input id="xp-slogan" type="text" maxlength="80" autocomplete="off" placeholder="Ex. La qualité au meilleur prix"></div></div>
+              <div class="field"><label for="xp-city">Ville</label><div class="inp"><input id="xp-city" type="text" maxlength="60" autocomplete="off" placeholder="Ex. Bamako"></div></div>
+              <div class="field"><label for="xp-whatsapp">WhatsApp</label><div class="inp"><input id="xp-whatsapp" type="tel" inputmode="tel" autocomplete="off" placeholder="76 12 34 56"></div></div>
+              <div class="field"><label for="xp-facebook">Facebook</label><div class="inp"><input id="xp-facebook" type="text" maxlength="250" autocomplete="off" placeholder="Nom de page ou lien"></div></div>
+              <div class="field"><label for="xp-instagram">Instagram</label><div class="inp"><input id="xp-instagram" type="text" maxlength="250" autocomplete="off" placeholder="@nom ou lien"></div></div>
+              <div class="field"><label for="xp-tiktok">TikTok</label><div class="inp"><input id="xp-tiktok" type="text" maxlength="250" autocomplete="off" placeholder="@nom ou lien"></div></div>
+            </details>
             <p class="cart-title"><strong>Mes produits</strong> <small>Nom · Prix en FCFA</small></p>
             <ul id="x-lines" class="cart-lines x-lines"></ul>
             <button id="x-add" class="btn secondary block small" type="button">+ Ajouter un produit</button>
@@ -291,6 +328,7 @@
                 <a id="x-orders" class="btn secondary" href="#/commandes"><svg class="ic"><use href="#i-check"/></svg>Mes commandes</a>
               </div>
             </div>
+            </details>
           </section>
         </div>
 
@@ -448,9 +486,13 @@
     <!-- Maya Express : page du client (catalogue, panier) -->
     <section id="view-shop" hidden>
       <article class="card pay-card shop-card">
+        <img id="s-banner" class="shop-banner" alt="" hidden>
         <p class="muted">Maya Express</p>
         <img id="s-photo" class="avatar big-avatar" alt="" hidden>
         <h1 id="s-name"></h1>
+        <p id="s-slogan" class="shop-slogan" hidden></p>
+        <p id="s-city" class="muted" hidden></p>
+        <div id="s-links" class="shop-links" hidden></div>
         <p id="s-ops" class="muted"></p>
         <p id="s-closed" class="err" role="status" hidden>Cette boutique ne prend plus de commande pour le moment.</p>
         <ul id="s-list" class="shop-list"></ul>

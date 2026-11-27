@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Administration – MAYA-PAY</title>
   <meta name="theme-color" content="#1E1E21">
@@ -58,7 +59,8 @@
       </div>
 
       <article class="card">
-        <h2>Accès gratuit</h2>
+        <details class="fold">
+          <summary><h2>Accès gratuit</h2></summary>
         <div class="switch-row">
           <p><strong id="free-title"></strong><small id="free-text"></small></p>
           <label class="switch" aria-label="Accès gratuit à MAYA-PAY">
@@ -66,10 +68,12 @@
           </label>
         </div>
         <p id="free-msg" class="msg" role="status"></p>
+        </details>
       </article>
 
       <article class="card">
-        <h2>Paramètres de l'abonnement</h2>
+        <details class="fold">
+          <summary><h2>Paramètres de l'abonnement</h2></summary>
         <form id="set-form" novalidate>
           <div class="row two">
             <div class="field">
@@ -102,17 +106,21 @@
           <button class="btn primary" type="submit" style="margin-top:12px">Enregistrer</button>
           <p id="set-msg" class="msg" role="status"></p>
         </form>
+        </details>
       </article>
 
       <article id="pending-card" class="card" hidden>
-        <h2>Paiements à valider</h2>
+        <details class="fold" open>
+          <summary><h2>Paiements à valider</h2></summary>
         <p class="hint" style="margin-top:0">Ces paiements ont été détectés mais le serveur n'a pas pu les confirmer seul (numéro expéditeur non établi). Contrôlez la réception sur votre compte marchand avant de valider.</p>
         <ul id="pending" class="list"></ul>
         <p id="pay-msg" class="msg" role="status"></p>
+        </details>
       </article>
 
       <article class="card">
-        <h2>Licences des vendeurs</h2>
+        <details class="fold">
+          <summary><h2>Licences des vendeurs</h2></summary>
         <div class="searchrow">
           <input id="q" type="tel" inputmode="tel" placeholder="Rechercher un numéro" autocomplete="off" aria-label="Rechercher un numéro">
         </div>
@@ -125,15 +133,19 @@
           <button class="btn secondary" type="submit">Prolonger</button>
         </form>
         <p id="lic-msg" class="msg" role="status"></p>
+        </details>
       </article>
 
       <article class="card">
-        <h2>Derniers paiements d'abonnement</h2>
+        <details class="fold">
+          <summary><h2>Derniers paiements d'abonnement</h2></summary>
         <ul id="payments" class="list"></ul>
+        </details>
       </article>
 
       <article id="ads-card" class="card" hidden>
-        <h2>Publicité de l'accueil</h2>
+        <details class="fold">
+          <summary><h2>Publicité de l'accueil</h2></summary>
         <p class="hint" style="margin-top:0">Seul l'administrateur publie ici. Une annonce active est affichée au hasard sous le formulaire de l'accueil (site et application).</p>
         <form id="ad-form" novalidate autocomplete="off">
           <div class="field">
@@ -170,16 +182,20 @@
         </form>
         <h3 class="sub-head">Annonces</h3>
         <ul id="ad-list" class="list"></ul>
+        </details>
       </article>
 
       <article id="support-card" class="card" hidden>
-        <h2>Assistance clients</h2>
+        <details class="fold">
+          <summary><h2>Assistance clients <span id="support-unread" class="badge warn" hidden></span></h2></summary>
         <div id="support-box"></div>
         <p id="support-msg" class="msg" role="status"></p>
+        </details>
       </article>
 
       <article class="card">
-        <h2>Mot de passe administrateur</h2>
+        <details class="fold">
+          <summary><h2>Mot de passe administrateur</h2></summary>
         <form id="pw-form" novalidate autocomplete="off">
           <div class="row two">
             <div class="field">
@@ -194,6 +210,7 @@
           <button class="btn secondary" type="submit">Changer le mot de passe</button>
           <p id="pw-msg" class="msg" role="status"></p>
         </form>
+        </details>
       </article>
     </section>
   </main>

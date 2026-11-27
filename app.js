@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { validatePayment, validatePayer, parseHash, formatAmount, normalizeNumber } from './link.js';
-import { adsPublic, serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
+import { adsPublic, importBoutique, importProduits, serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 import { drawQr } from './qr.js';
 import { setupCart } from './cart.js';
@@ -88,6 +88,37 @@ async function makeAvatar(file, steps = [[CONFIG.photo.side, 0.8], [CONFIG.photo
 // Photo de produit (Maya Express) : même traitement que le logo, mais beaucoup plus petite.
 const makeThumb = (file) => makeAvatar(file, [[160, 0.72], [128, 0.65], [112, 0.55], [96, 0.5], [80, 0.45]], CONFIG.express.thumbMaxChars);
 
+// Bannière de la vitrine : rectangle 8:3 recadré, réduit et converti en JPEG (60 000 caractères maximum côté serveur).
+const BANNER_MAX = 58000;
+async function makeBanner(file) {
+  let src;
+  if (window.createImageBitmap) {
+    try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { /* repli ci-dessous */ }
+  }
+  if (!src) {
+    const url = URL.createObjectURL(file);
+    try {
+      src = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('decode')); i.src = url; });
+    } finally { URL.revokeObjectURL(url); }
+  }
+  const sw = src.width, sh = src.height;
+  if (!sw || !sh) throw new Error('decode');
+  const ratio = 8 / 3;
+  let cw = sw, ch = sw / ratio;
+  if (ch > sh) { ch = sh; cw = sh * ratio; }
+  for (const [w, q] of [[640, 0.72], [560, 0.65], [480, 0.6], [400, 0.55], [320, 0.5], [240, 0.45]]) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = Math.round(w / ratio);
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+    const data = c.toDataURL('image/jpeg', q);
+    if (PHOTO_RE.test(data) && data.length <= BANNER_MAX) { if (src.close) src.close(); return data; }
+  }
+  if (src.close) src.close();
+  throw new Error('too_big');
+}
+
 function invalid() {
   document.title = 'Lien invalide – MAYA-PAY';
   show('view-error');
@@ -145,6 +176,184 @@ $('f-photo').addEventListener('change', async (e) => {
   renderPhoto();
 });
 $('photo-remove').addEventListener('click', () => { vendorPhoto = ''; store.set({ photo: '' }); renderPhoto(); });
+
+/* ---------- Import d'une boutique Boutiki ---------- */
+const IMP_MSG = {
+  bad_slug: 'Nom ou adresse de boutique invalide. Exemple : ma-boutique',
+  not_found: 'Boutique introuvable ou suspendue. Vérifiez le nom ou l\u2019adresse.',
+  too_many: 'Trop d\u2019essais. Réessayez dans une minute.',
+  empty: 'Cette boutique n\u2019a ni nom ni numéro à importer.',
+  net: 'Connexion impossible. Vérifiez internet puis réessayez.',
+};
+// Accepte « ma-boutique », « boutiki.techmali.tech/ma-boutique » ou un lien complet (chemin, #fragment ou ?s=…).
+function slugFrom(raw) {
+  const s = String(raw || '').trim().toLowerCase();
+  if (!s) return '';
+  let v = s;
+  if (/[/?#=:.]/.test(s)) {
+    try {
+      const u = new URL(/^[a-z][a-z0-9+.-]*:\/\//.test(s) ? s : 'https://' + s);
+      v = '';
+      for (const k of ['s', 'slug', 'b', 'shop', 'boutique', 'page']) { v = v || u.searchParams.get(k) || ''; }
+      if (!v) v = u.hash.replace(/^#\/?/, '').split(/[/?]/).filter(Boolean).pop() || '';
+      if (!v) v = u.pathname.split('/').filter(Boolean).pop() || '';
+    } catch { v = ''; }
+  }
+  return v.replace(/[^a-z0-9-]/g, '').slice(0, 60);
+}
+const groupDigits = (d) => d.replace(/(\d{2})(?=\d)/g, '$1 ');
+const numOk = (d) => d.length >= CONFIG.numberDigits.min && d.length <= CONFIG.numberDigits.max;
+function impSay(text, bad) {
+  const p = $('imp-msg');
+  p.textContent = text || '';
+  p.className = text ? (bad ? 'err' : 'hint imp-ok') : '';
+}
+let importing = false;
+let importedSlug = '';
+async function importShop() {
+  if (importing) return;
+  const slug = slugFrom($('imp-slug').value);
+  if (!slug) return impSay(IMP_MSG.bad_slug, true);
+  importing = true;
+  $('imp-go').disabled = true;
+  impSay('Importation en cours…');
+  $('imp-prod').hidden = true;
+  try {
+    let r;
+    try { r = await importBoutique(slug); } catch { return impSay(IMP_MSG.net, true); }
+    if (!r || r.error || !r.ok) return impSay(IMP_MSG[r && r.error] || IMP_MSG.net, true);
+
+    importedSlug = slug;
+    const done = [];
+    const missing = [];
+    const name = String(r.name || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+    const po = normalizeNumber(r.orange);
+    const pm = normalizeNumber(r.moov);
+    if (!name && !numOk(po) && !numOk(pm)) return impSay(IMP_MSG.empty, true);
+
+    setErrors({});
+    $('e-photo').textContent = '';
+    if (name) { fields.n.value = name; done.push('nom'); }
+    if (numOk(po)) { fields.po.value = groupDigits(po); done.push('Orange Money'); } else missing.push('numéro Orange Money');
+    if (numOk(pm)) { fields.pm.value = groupDigits(pm); done.push('Moov Money'); } else missing.push('numéro Moov Money');
+
+    // Logo : lu dans le stockage public du projet, puis réduit en petit JPEG carré comme une photo choisie à la main.
+    if (/^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\//.test(String(r.logo || ''))) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(r.logo, { signal: ctrl.signal, credentials: 'omit' });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('http');
+        const blob = await res.blob();
+        if (blob.size > 6000000 || !/^image\//.test(blob.type)) throw new Error('type');
+        vendorPhoto = await makeAvatar(blob);
+        store.set({ photo: vendorPhoto });
+        renderPhoto();
+        done.push('logo');
+      } catch { missing.push('logo (ajoutez-le avec « Choisir une photo »)'); }
+    } else missing.push('logo');
+
+    // Profil de la vitrine Maya Express : bannière, WhatsApp, ville, slogan, réseaux sociaux (modifiables ensuite dans « Maya Express »).
+    let banner = '';
+    if (IMG_OK.test(String(r.banner || ''))) {
+      try { banner = await fetchBanner(r.banner); } catch { missing.push('bannière (ajoutez-la dans « Maya Express »)'); }
+    }
+    const gotProfile = express.importProfile({ wa: r.whatsapp, ci: r.city, sl: r.slogan, fb: r.facebook, ig: r.instagram, tt: r.tiktok }, banner);
+    if (gotProfile.length) done.push('profil de la vitrine (' + gotProfile.join(', ') + ')');
+
+    let msg = 'Boutique importée : ' + done.join(', ') + '. Vérifiez puis créez votre lien.';
+    if (missing.length) msg += ' Non importé : ' + missing.join(', ') + '.';
+    impSay(msg);
+    $('forget').hidden = false;
+    const nProd = Math.min(Number(r.products) || 0, CONFIG.express.maxProducts);
+    const bp = $('imp-prod');
+    bp.hidden = nProd < 1;
+    if (nProd) bp.textContent = nProd === 1 ? 'Importer aussi mon produit (prix et photo)' : `Importer aussi mes ${nProd} produits (prix et photos)`;
+  } finally {
+    importing = false;
+    $('imp-go').disabled = false;
+  }
+}
+// Produits : nom et prix remplissent le catalogue Maya Express ; chaque photo est lue puis réduite en petit carré (sans photo si elle échoue).
+const IMG_OK = /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\//;
+async function fetchThumb(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit' });
+    if (!res.ok) throw new Error('http');
+    const blob = await res.blob();
+    if (blob.size > 6000000 || !/^image\//.test(blob.type)) throw new Error('type');
+    return await makeThumb(blob);
+  } finally { clearTimeout(timer); }
+}
+async function fetchBanner(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit' });
+    if (!res.ok) throw new Error('http');
+    const blob = await res.blob();
+    if (blob.size > 8000000 || !/^image\//.test(blob.type)) throw new Error('type');
+    return await makeBanner(blob);
+  } finally { clearTimeout(timer); }
+}
+async function importProducts() {
+  if (importing || !importedSlug) return;
+  importing = true;
+  const btn = $('imp-prod');
+  btn.disabled = true;
+  $('imp-go').disabled = true;
+  try {
+    let r;
+    try { r = await importProduits(importedSlug); } catch { return impSay(IMP_MSG.net, true); }
+    if (!r || r.error || !r.ok) return impSay(IMP_MSG[r && r.error] || IMP_MSG.net, true);
+    const items = (Array.isArray(r.items) ? r.items : [])
+      .map((x) => ({ n: String(x && x.n || '').replace(/\s+/g, ' ').trim().slice(0, 40), p: Number(x && x.p), img: IMG_OK.test(String(x && x.img || '')) ? x.img : '' }))
+      .filter((x) => x.n && Number.isInteger(x.p) && x.p >= 1 && x.p <= CONFIG.amount.max)
+      .slice(0, CONFIG.express.maxProducts);
+    if (!items.length) return impSay('Cette boutique n\u2019a aucun produit avec un prix à importer.', true);
+
+    let done = 0;
+    let noPhoto = 0;
+    const queue = items.slice();
+    const worker = async () => {
+      for (let it = queue.shift(); it; it = queue.shift()) {
+        if (it.img) {
+          try { it.ph = await fetchThumb(it.img); } catch { noPhoto++; }
+        } else noPhoto++;
+        impSay(`Photos des produits : ${++done}/${items.length}…`);
+      }
+    };
+    impSay(`Photos des produits : 0/${items.length}…`);
+    await Promise.all([worker(), worker(), worker()]);
+
+    const res = express.importItems(items);
+    let msg = `${res.added} produit${res.added > 1 ? 's' : ''} ajouté${res.added > 1 ? 's' : ''} à Maya Express`;
+    if (noPhoto) msg += ` (${noPhoto} sans photo)`;
+    msg += '.';
+    if (res.duplicates) msg += ` ${res.duplicates} déjà présent${res.duplicates > 1 ? 's' : ''}.`;
+    if (res.full) msg += ` ${res.full} non ajouté${res.full > 1 ? 's' : ''} : maximum ${CONFIG.express.maxProducts} produits.`;
+    msg += ' Vérifiez-les dans « Maya Express », puis créez ou mettez à jour votre vitrine.';
+    impSay(msg);
+    btn.hidden = true;
+    $('express-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } finally {
+    importing = false;
+    btn.disabled = false;
+    $('imp-go').disabled = false;
+  }
+}
+$('imp-prod').addEventListener('click', importProducts);
+$('imp-toggle').addEventListener('click', () => {
+  const panel = $('imp-panel');
+  panel.hidden = !panel.hidden;
+  $('imp-toggle').setAttribute('aria-expanded', String(!panel.hidden));
+  if (!panel.hidden) $('imp-slug').focus();
+});
+$('imp-go').addEventListener('click', importShop);
+$('imp-slug').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); importShop(); } });
 
 // Application Android : le téléphone surveille les liens récents du vendeur et le prévient d'un nouveau paiement,
 // même application fermée (pas de Firebase). Seuls l'identifiant et la clé de suivi sont transmis à l'application.
@@ -233,7 +442,7 @@ function showVendor() {
 }
 
 const cart = setupCart();
-const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, makeThumb, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
+const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, makeThumb, makeBanner, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
 
 function setErrors(errors) {
   for (const k of Object.keys(fields)) {
@@ -264,6 +473,7 @@ $('form').addEventListener('submit', async (e) => {
     if (err && err.code === 'license_required') {
       $('form-err').textContent = 'Votre licence est expirée : abonnez-vous pour créer de nouveaux liens. Vos anciens liens et votre historique sont conservés.';
       refreshSub();
+      reveal($('sub-card'));
       $('sub-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       $('form-err').textContent = 'Connexion impossible. Réessayez.';
@@ -353,6 +563,7 @@ function vendorPhones() {
   return { po: ok(po) ? po : '', pm: ok(pm) ? pm : '' };
 }
 
+let subRevealed = false;
 function renderSub(info) {
   const status = $('sub-status');
   const btn = $('sub-btn');
@@ -388,6 +599,8 @@ function renderSub(info) {
   $('sub-note').textContent = note;
   $('sub-btn-text').textContent = label;
   btn.hidden = !canPay;
+  // Un problème de licence ne doit pas rester caché dans une section repliée (ouverte une seule fois).
+  if (cls === 'bad' && hasNumber && !info.free && !subRevealed) { subRevealed = true; reveal($('sub-card')); }
 }
 
 async function refreshSub() {
@@ -873,8 +1086,8 @@ function showReceipt() {
     + '<svg viewBox="0 0 52 52" class="rc-check"><circle cx="26" cy="26" r="23"/><path d="M15 27.5l8 8 15-17"/></svg>';
   box.appendChild(medal);
 
-  box.appendChild(el('h2', 'rc-title', i.sub ? 'Abonnement activé !' : 'Opération réussie !'));
-  box.appendChild(el('p', 'rc-sub', i.sub ? 'Paiement vérifié : votre licence est activée ou prolongée.' : 'Paiement effectué avec succès'));
+  box.appendChild(el('h2', 'rc-title', i.sub ? 'Paiement détecté !' : 'Opération réussie !'));
+  box.appendChild(el('p', 'rc-sub', i.sub ? 'Suivez l’état de votre licence dans « Mon abonnement ».' : 'Paiement effectué avec succès'));
   box.appendChild(el('p', 'rc-to', i.sub ? 'Abonnement MAYA-PAY' : 'Votre paiement à'));
   if (!i.sub) box.appendChild(el('p', 'rc-merchant', payment.n));
   box.appendChild(el('p', 'rc-amount', i.amount));
@@ -899,7 +1112,7 @@ function showReceipt() {
   const share = el('button', 'btn primary block rc-btn', 'Partager le reçu');
   share.type = 'button';
   share.addEventListener('click', async () => {
-    const text = [i.sub ? 'Abonnement MAYA-PAY : opération réussie' : `Paiement réussi à ${payment.n}`, `Montant : ${i.amount}`, `Opérateur : ${i.op}`, `Date : ${i.when}`, `Référence : ${i.ref}`].join('\n');
+    const text = [i.sub ? 'Abonnement MAYA-PAY : paiement détecté' : `Paiement réussi à ${payment.n}`, `Montant : ${i.amount}`, `Opérateur : ${i.op}`, `Date : ${i.when}`, `Référence : ${i.ref}`].join('\n');
     try {
       if (navigator.share) await navigator.share({ title: 'Reçu MAYA-PAY', text });
       else { await navigator.clipboard.writeText(text); toast('Reçu copié.'); }
@@ -944,6 +1157,8 @@ function startPoll(op) {
 addEventListener('pagehide', wipeSecrets);
 
 /* ---------- Menu ---------- */
+// Ouvre la section repliée avant d'y amener l'utilisateur.
+function reveal(el) { const d = el.querySelector(':scope > details.fold'); if (d) d.open = true; }
 const menu = $('menu');
 const menuBtn = $('menu-btn');
 function setMenu(open) { menu.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); }
@@ -957,6 +1172,7 @@ menu.addEventListener('click', (e) => {
   setMenu(false);
   const go = () => {
     const t = $(a.dataset.go);
+    if (t && !t.hidden) reveal(t);
     if (t && !t.hidden) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
     else window.scrollTo({ top: 0, behavior: 'smooth' });
   };

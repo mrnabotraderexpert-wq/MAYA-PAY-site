@@ -31,6 +31,10 @@ async function showList() {
     box.textContent = '';
     const ul = mk('ul', 'list');
     const th = r.threads || [];
+    const unread = th.reduce((n, t) => n + (Number(t.unread_admin) || 0), 0);
+    const tag = $('support-unread');
+    tag.textContent = unread + ' non lu' + (unread > 1 ? 's' : '');
+    tag.hidden = !unread;
     if (!th.length) ul.appendChild(mk('li', 'muted', 'Aucune conversation pour le moment.'));
     for (const t of th) {
       const li = mk('li');

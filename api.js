@@ -73,7 +73,14 @@ export const adminAdAction = (pass, id, action) => rpc('mayapay_admin_ad_action'
 export const expressSave = (v) => rpc('mayapay_express_save', { p_id: v.id || null, p_key: v.key || null, p_name: v.n, p_orange: v.po || null, p_moov: v.pm || null, p_photo: v.ph || null, p_products: v.products }, 30000);
 // Page publique du client : nom, photo, opérateurs, produits (jamais les numéros du vendeur).
 export const expressGet = (id) => rpc('mayapay_express_get', { p_id: id });
+// Profil de la vitrine (bannière, WhatsApp, ville, slogan, réseaux) : réservé au propriétaire (id + clé), vérifié et normalisé par le serveur.
+export const expressProfileSave = (v) => rpc('mayapay_express_profile_save', { p_id: v.id, p_key: v.key, p_banner: v.bn || null, p_whatsapp: v.wa || null, p_city: v.ci || null, p_slogan: v.sl || null, p_facebook: v.fb || null, p_instagram: v.ig || null, p_tiktok: v.tt || null }, 30000);
 // Le client valide son panier : le serveur crée un lien de paiement MAYA-PAY (24 h) et retourne son identifiant.
 export const expressOrder = (id, items, buyer, phone) => rpc('mayapay_express_order', { p_id: id, p_items: items, p_buyer: buyer, p_phone: phone }, 30000);
 // Commandes reçues (clé privée de la vitrine), avec l'état du paiement vérifié par SMS.
 export const expressOrders = (id, key) => rpc('mayapay_express_orders', { p_id: id, p_key: key });
+
+// Import d'une boutique Boutiki (infos déjà publiques : nom, numéros, logo). Erreurs renvoyées en JSON : bad_slug, not_found, too_many.
+export const importBoutique = (slug) => rpc('mayapay_import_boutique', { p_slug: slug });
+// Produits (nom, prix, photo) d'une boutique Boutiki : 30 au maximum. Erreurs JSON : bad_slug, not_found, too_many.
+export const importProduits = (slug) => rpc('mayapay_import_produits', { p_slug: slug });
