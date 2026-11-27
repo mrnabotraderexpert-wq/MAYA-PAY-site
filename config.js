@@ -43,9 +43,13 @@ export const CONFIG = {
   // apkUrl : adresse de l'APK (fichier à la racine du dépôt, ou lien GitHub Releases).
   app: {
     required: true,
-    apkUrl: 'maya-pay.apk',
+    apkUrl: 'MAYA-PAY.apk',
     androidPackage: 'com.mayapay.app',
   },
+
+  // Panneau publicitaire de l'accueil : les annonces (titre, texte, image, lien) sont créées UNIQUEMENT
+  // par l'administrateur dans admin.html > « Publicité ». enabled:false masque le panneau pour tout le monde.
+  ads: { enabled: true },
 
   // Rafraîchissement automatique de la page de suivi du vendeur (secondes).
   trackRefreshSeconds: 10,

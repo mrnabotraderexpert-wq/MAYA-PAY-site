@@ -1,7 +1,7 @@
 {
-  "versionCode": 16,
-  "versionName": "1.18",
-  "apkUrl": "https://maya-pay.com/maya-pay.apk",
-  "notes": "Verrou vendeur amélioré, plus de fiabilité du suivi de paiement, notifications et scan de QR.",
+  "versionCode": 17,
+  "versionName": "1.19",
+  "apkUrl": "https://maya-pay.com/MAYA-PAY.apk",
+  "notes": "Nouveau : notification « Paiement reçu » pour le vendeur même application fermée, et connexion sécurisée renforcée.",
   "force": false
 }

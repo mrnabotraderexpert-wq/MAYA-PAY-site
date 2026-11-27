@@ -61,3 +61,9 @@ export const supportAdminList = (pass) => rpc('mayapay_support_admin_list', { p_
 export const supportAdminGet = (pass, thread, after) => rpc('mayapay_support_admin_get', { p_pass: pass, p_thread: thread, p_after: after || 0 });
 export const supportAdminReply = (pass, thread, body) => rpc('mayapay_support_admin_reply', { p_pass: pass, p_thread: thread, p_body: body });
 export const supportAdminClose = (pass, thread, closed) => rpc('mayapay_support_admin_close', { p_pass: pass, p_thread: thread, p_closed: closed });
+
+// Publicités de l'accueil : lecture publique (une annonce au hasard), écriture réservée à l'administrateur
+export const adsPublic = () => rpc('mayapay_ads_public', {});
+export const adminAdsList = (pass) => rpc('mayapay_admin_ads_list', { p_pass: pass });
+export const adminAdSave = (pass, ad) => rpc('mayapay_admin_ad_save', { p_pass: pass, p_id: ad.id ?? null, p_title: ad.title, p_text: ad.text, p_cta: ad.cta, p_url: ad.url, p_image: ad.image || null, p_active: ad.active });
+export const adminAdAction = (pass, id, action) => rpc('mayapay_admin_ad_action', { p_pass: pass, p_id: id, p_action: action });

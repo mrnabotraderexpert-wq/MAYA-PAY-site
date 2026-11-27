@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { validatePayment, validatePayer, parseHash, formatAmount, normalizeNumber } from './link.js';
-import { serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
+import { adsPublic, serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 
 const $ = (id) => document.getElementById(id);
@@ -137,6 +137,19 @@ $('f-photo').addEventListener('change', async (e) => {
 });
 $('photo-remove').addEventListener('click', () => { vendorPhoto = ''; store.set({ photo: '' }); renderPhoto(); });
 
+// Application Android : le téléphone surveille les liens récents du vendeur et le prévient d'un nouveau paiement,
+// même application fermée (pas de Firebase). Seuls l'identifiant et la clé de suivi sont transmis à l'application.
+function syncNativeWatch() {
+  try {
+    if (typeof window.MayaNative?.watchLinks !== 'function') return;
+    const list = (store.get().links || [])
+      .filter((l) => l && validId(l.id) && validKey(l.key))
+      .slice(0, 10)
+      .map((l) => ({ id: l.id, key: l.key, n: String(l.n || '').slice(0, 40), t: Number(l.t) || Date.now() }));
+    window.MayaNative.watchLinks(JSON.stringify(list));
+  } catch { /* ignoré */ }
+}
+
 function renderRecent() {
   const links = store.get().links || [];
   const ul = $('recent');
@@ -160,6 +173,39 @@ function renderRecent() {
   $('recent-box').hidden = !ul.children.length;
 }
 
+/* ---------- Panneau publicitaire (config.js > ads) ---------- */
+function safeAdUrl(u) {
+  try {
+    const x = new URL(String(u || ''), location.href);
+    return x.protocol === 'https:' ? x.href : '';
+  } catch { return ''; }
+}
+function safeAdImage(u) {
+  const v = String(u || '');
+  return /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v) && v.length <= 90000 ? v : '';
+}
+let adSeq = 0;
+async function renderAd() {
+  const box = $('ad-panel');
+  const seq = ++adSeq;
+  box.hidden = true;
+  if (!CONFIG.ads || !CONFIG.ads.enabled) return;
+  let ad = null;
+  try { ad = await adsPublic(); } catch { return; }   // hors ligne ou serveur indisponible : pas de panneau
+  if (seq !== adSeq || !ad || typeof ad !== 'object' || !ad.title || $('view-vendor').hidden) return;
+  $('ad-title').textContent = String(ad.title).slice(0, 60);
+  const txt = $('ad-text');
+  txt.textContent = String(ad.text || '').slice(0, 160);
+  txt.hidden = !txt.textContent;
+  const img = $('ad-img');
+  const src = safeAdImage(ad.image);
+  if (src) { img.src = src; img.hidden = false; } else { img.removeAttribute('src'); img.hidden = true; }
+  const cta = $('ad-cta');
+  const url = safeAdUrl(ad.url);
+  if (url && ad.cta) { cta.href = url; cta.textContent = String(ad.cta).slice(0, 30); cta.hidden = false; } else { cta.hidden = true; cta.removeAttribute('href'); }
+  box.hidden = false;
+}
+
 function showVendor() {
   document.title = 'MAYA-PAY – Liens de paiement Mobile Money';
   show('view-vendor');
@@ -173,6 +219,7 @@ function showVendor() {
   $('forget').hidden = !(saved.n || saved.po || saved.pm || vendorPhoto);
   renderRecent();
   refreshSub();
+  renderAd();
 }
 
 function setErrors(errors) {
@@ -215,6 +262,7 @@ $('form').addEventListener('submit', async (e) => {
   lastLink = link;
   const links = [{ id: created.id, key: created.key, n: r.value.n, a: r.value.a, t: Date.now() }, ...(store.get().links || [])].slice(0, 10);
   store.set({ n: r.value.n, po: r.value.po, pm: r.value.pm, h: r.value.h, links });
+  syncNativeWatch();
   $('forget').hidden = false;
   renderRecent();
 
@@ -883,6 +931,8 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 route();
+
+syncNativeWatch();
 
 // Application Android : bouton « Scanner un QR de paiement » (lecteur de QR du téléphone).
 (() => {

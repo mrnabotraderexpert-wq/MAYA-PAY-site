@@ -132,6 +132,46 @@
         <ul id="payments" class="list"></ul>
       </article>
 
+      <article id="ads-card" class="card" hidden>
+        <h2>Publicité de l'accueil</h2>
+        <p class="hint" style="margin-top:0">Seul l'administrateur publie ici. Une annonce active est affichée au hasard sous le formulaire de l'accueil (site et application).</p>
+        <form id="ad-form" novalidate autocomplete="off">
+          <div class="field">
+            <label for="ad-f-title">Titre <span class="opt">(60 caractères maximum)</span></label>
+            <input id="ad-f-title" type="text" maxlength="60" style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+          </div>
+          <div class="field">
+            <label for="ad-f-text">Texte <span class="opt">(160 caractères maximum)</span></label>
+            <textarea id="ad-f-text" maxlength="160" rows="3" style="width:100%;padding:12px 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit"></textarea>
+          </div>
+          <div class="row two">
+            <div class="field">
+              <label for="ad-f-cta">Texte du bouton <span class="opt">(facultatif)</span></label>
+              <input id="ad-f-cta" type="text" maxlength="30" placeholder="Découvrir" style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+            </div>
+            <div class="field">
+              <label for="ad-f-url">Lien du bouton <span class="opt">(https://…)</span></label>
+              <input id="ad-f-url" type="url" inputmode="url" placeholder="https://boutiki.techmali.tech" style="width:100%;height:48px;padding:0 14px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+            </div>
+          </div>
+          <div class="field">
+            <label for="ad-f-img">Image <span class="opt">(facultatif, réduite automatiquement)</span></label>
+            <div class="item-actions">
+              <img id="ad-preview" alt="Aperçu de l'image" hidden style="width:72px;height:72px;border-radius:16px;object-fit:cover;border:1px solid #DCE3F4">
+              <input id="ad-f-img" type="file" accept="image/png,image/jpeg,image/webp">
+              <button id="ad-img-remove" class="btn ghost small" type="button" hidden>Retirer l'image</button>
+            </div>
+          </div>
+          <div class="item-actions" style="margin-top:12px">
+            <button id="ad-save" class="btn primary" type="submit">Publier l'annonce</button>
+            <button id="ad-cancel" class="btn ghost" type="button" hidden>Annuler la modification</button>
+          </div>
+          <p id="ad-msg" class="msg" role="status"></p>
+        </form>
+        <h3 class="sub-head">Annonces</h3>
+        <ul id="ad-list" class="list"></ul>
+      </article>
+
       <article id="support-card" class="card" hidden>
         <h2>Assistance clients</h2>
         <div id="support-box"></div>
@@ -162,5 +202,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script type="module" src="admin.js"></script>
   <script type="module" src="admin-support.js"></script>
+  <script type="module" src="admin-ads.js"></script>
 </body>
 </html>

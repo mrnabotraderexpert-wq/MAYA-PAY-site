@@ -161,9 +161,8 @@
               <label for="f-po"><svg class="ic lic"><use href="#i-phone"/></svg>Numéro Orange Money <span class="opt">(facultatif)</span></label>
               <div class="inp">
                 <svg class="opicon" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="4" fill="#FF7900"/><text x="18" y="32" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Montserrat, system-ui, sans-serif">Orange</text></svg>
-                <input id="f-po" name="tel" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" aria-describedby="h-p h-po e-po">
+                <input id="f-po" name="tel" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" aria-describedby="h-p e-po">
               </div>
-              <p class="hint hint-warn" id="h-po"><svg class="ic"><use href="#i-alert"/></svg><span>Pour recevoir des paiements Orange Money, votre numéro doit être un <strong>compte marchand</strong>. Un compte personnel ne peut pas encaisser les paiements de vos clients. Vérifiez-le avant de partager votre lien.</span></p>
               <p class="err" id="e-po" role="alert"></p>
             </div>
             <div class="field">
@@ -209,6 +208,17 @@
             <p id="form-err" class="err center" role="alert"></p>
             <button id="forget" class="linkish" type="button" hidden>Effacer mon nom et mon numéro de cet appareil</button>
           </form>
+
+          <!-- Panneau publicitaire (contenu réglé dans config.js > ads ; masqué s'il est désactivé) -->
+          <aside id="ad-panel" class="card ad-card" aria-label="Publicité" hidden>
+            <span class="ad-tag">Publicité</span>
+            <img id="ad-img" class="ad-img" alt="" hidden>
+            <div class="ad-body">
+              <h2 id="ad-title"></h2>
+              <p id="ad-text"></p>
+              <a id="ad-cta" class="btn primary small" target="_blank" rel="noopener noreferrer sponsored" hidden></a>
+            </div>
+          </aside>
 
           <section id="sub-card" class="card sub-card" aria-live="polite">
             <h2>Mon abonnement</h2>
@@ -307,7 +317,7 @@
             <p class="muted">Elle lance le paiement directement sur votre SIM, sans afficher le numéro du vendeur, et confirme le paiement automatiquement.</p>
             <a id="app-open" class="btn primary block big" href="#">J’ai déjà l’application : ouvrir ce paiement</a>
             <p class="muted small-note">Pas encore installée ? Téléchargez-la ci-dessous.</p>
-            <a id="apk-link" class="btn secondary block" href="maya-pay.apk" download>Télécharger l’application</a>
+            <a id="apk-link" class="btn secondary block" href="MAYA-PAY.apk" download>Télécharger l’application</a>
             <p class="muted small-note">Après le téléchargement, ouvrez le fichier. Si le téléphone le demande, autorisez l’installation d’applications depuis cette source.</p>
           </div>
           <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span><strong>C’est vous qui lancez le paiement.</strong> MAYA-PAY prépare seulement le code ; votre opérateur vous demandera de le valider avec votre code PIN, que MAYA-PAY ne connaît jamais. Le bénéficiaire affiché doit être <strong id="warn-name"></strong>.</span></p>
