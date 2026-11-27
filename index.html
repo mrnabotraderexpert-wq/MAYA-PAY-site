@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MAYA-PAY</title>
+  <meta name="description" content="MAYA-PAY : un raccourci de lien pour faciliter les paiements Mobile Money (Orange Money, Moov Money).">
+  <meta name="theme-color" content="#1E1E21">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Publicité : grande image pleine largeur au-dessus du texte */
+    .ad-card{display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:12px}
+    .ad-card .ad-img{display:block;width:100% !important;max-width:100% !important;height:auto !important;max-height:260px;object-fit:cover;border-radius:14px;margin:26px 0 0 0;order:-1;flex:none}
+    .ad-card .ad-img[hidden]{display:none}
+    .ad-card .ad-body{width:100%;min-width:0}
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+      <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
+      <symbol id="i-sms" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+      <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+      <symbol id="i-userphone" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20v-1.5A4.5 4.5 0 0 1 7 14h4"/><rect x="14" y="11" width="7.5" height="11" rx="1.6"/><line x1="17.75" y1="19" x2="17.76" y2="19"/></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 10 22 20 9 13 9 13 2" fill="currentColor"/></symbol>
+      <symbol id="i-shop-phone" viewBox="0 0 80 80">
+        <rect x="22" y="22" width="36" height="52" rx="6" fill="#2D6CC4"/>
+        <rect x="26" y="40" width="28" height="30" rx="3" fill="#EAF2FF"/>
+        <rect x="31" y="46" width="18" height="6" rx="2" fill="#F7870F"/>
+        <rect x="31" y="56" width="18" height="3" rx="1.5" fill="#9FB6DE"/>
+        <path d="M17 24l4-14h38l4 14z" fill="#fff" stroke="#E4572E" stroke-width="1"/>
+        <path d="M21 10h8l-2 14h-8zM37 10h6l1 14h-8zM51 10h8l4 14h-8z" fill="#E4572E"/>
+        <path d="M17 24h46a6 6 0 0 1-9.2 4.2A6 6 0 0 1 46 28a6 6 0 0 1-6 2 6 6 0 0 1-6-2 6 6 0 0 1-7.8.2A6 6 0 0 1 17 24z" fill="#fff" stroke="#E4572E" stroke-width="1"/>
+        <circle cx="62" cy="52" r="12" fill="#22A06B" stroke="#fff" stroke-width="3"/>
+        <polyline points="56 52 60.5 56.5 68 48" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="top">
+    <button id="menu-btn" class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+    <a class="brand" href="./" aria-label="MAYA-PAY, the future of mobile payments, accueil">
+      <img src="logo.png" width="280" height="55" alt="MAYA-PAY, the future of mobile payments">
+    </a>
+  </header>
+  <nav id="menu" class="menu" aria-label="Menu principal" hidden>
+    <a href="#/" data-go="view-vendor">Créer un lien de paiement</a>
+    <a href="#/" data-go="sub-card">Mon abonnement</a>
+    <a href="#/" data-go="recent-box">Mes liens récents</a>
+    <button id="install" class="menu-install" type="button" hidden>Installer l'application</button>
+  </nav>
+
+  <main>
+    <noscript><p class="notice">MAYA-PAY a besoin de JavaScript pour fonctionner.</p></noscript>
+
+    <!-- Téléphone uniquement -->
+    <section id="view-desktop" hidden>
+      <img class="banner" src="banner.jpg" width="1200" height="515" alt="MAYA-PAY, the future of mobile payments" fetchpriority="high">
+      <article class="card pay-card">
+        <h1>Ouvrez MAYA-PAY sur votre téléphone</h1>
+        <p class="lead">MAYA-PAY sert aux paiements mobiles (Orange Money, Moov Money) et fonctionne uniquement sur téléphone.</p>
+      </article>
+    </section>
+
+    <!-- Vue vendeur -->
+    <section id="view-vendor" hidden>
+      <img class="banner" src="banner.jpg" width="1200" height="515" alt="MAYA-PAY, the future of mobile payments. Des paiements plus simples, plus rapides, plus proches de vous." fetchpriority="high">
+      <div id="vendor-grid" class="vendor-grid">
+        <div class="vendor-main">
+          <button id="scan-qr" class="btn secondary block" type="button" hidden><svg class="ic"><use href="#i-link"/></svg>Scanner un QR de paiement</button>
+          <article class="card hero-card">
+            <div class="hero-head">
+              <span class="hero-ic" aria-hidden="true"><svg class="ic"><use href="#i-link"/></svg></span>
+              <div>
+                <h1>Créer un lien de paiement</h1>
+                <span class="hero-rule" aria-hidden="true"></span>
+                <p class="lead">Votre client paie depuis son compte Orange Money ou Moov Money vers le vôtre. L'argent ne passe jamais par MAYA-PAY.</p>
+              </div>
+            </div>
+            <p class="fine initiates"><svg class="ic"><use href="#i-shield"/></svg><span><strong>Le client initie, pas MAYA-PAY.</strong> MAYA-PAY prépare seulement le code ; c’est le client qui le valide avec son code PIN.</span></p>
+            <div class="sarali-title"><svg class="ic"><use href="#i-bolt"/></svg><h2>Activation Sarali</h2></div>
+            <div class="sarali-banner">
+              <p class="sb-left">Avant de fournir votre numéro, veuillez l’enregistrer comme numéro marchand.</p>
+              <svg class="sb-art" viewBox="0 0 80 80" aria-hidden="true"><use href="#i-shop-phone"/></svg>
+              <p class="sb-right">Voici la procédure d'activation Sarali :</p>
+            </div>
+            <ol class="steps">
+              <li>
+                <span class="step-n" aria-hidden="true">1</span>
+                <div class="step-art">
+                  <svg viewBox="0 0 80 80" aria-hidden="true">
+                    <rect x="22" y="6" width="36" height="62" rx="7" fill="#0E1F44"/>
+                    <text x="40" y="28" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Montserrat, system-ui, sans-serif">#143#</text>
+                    <path d="M29 40a16 16 0 0 1 22 0M33 45a10 10 0 0 1 14 0" fill="none" stroke="#F7870F" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="40" cy="51" r="2.6" fill="#F7870F"/>
+                    <rect x="35" y="57" width="10" height="8" rx="2" fill="#F7870F"/>
+                  </svg>
+                </div>
+                <p>1. Composez #143# sur votre puce Orange.</p>
+              </li>
+              <li>
+                <span class="step-n" aria-hidden="true">2</span>
+                <div class="step-art">
+                  <svg viewBox="0 0 80 80" aria-hidden="true">
+                    <rect x="16" y="6" width="48" height="58" rx="7" fill="#0E1F44"/>
+                    <circle cx="26" cy="22" r="3.2" fill="#F7870F"/><rect x="33" y="19.5" width="24" height="5" rx="2.5" fill="#22B8B0"/>
+                    <circle cx="26" cy="36" r="3.2" fill="#F7870F"/><rect x="33" y="33.5" width="24" height="5" rx="2.5" fill="#22B8B0"/>
+                    <rect x="8" y="50" width="64" height="14" rx="7" fill="#fff" stroke="#0E1F44" stroke-width="1"/>
+                    <text x="40" y="59.2" text-anchor="middle" font-size="5.4" font-weight="600" fill="#0E1F44" font-family="Montserrat, system-ui, sans-serif">Sarali / petit commerçant</text>
+                  </svg>
+                </div>
+                <p>2. Sélectionnez l'option de souscription Sarali / petit commerçant.</p>
+              </li>
+              <li>
+                <span class="step-n" aria-hidden="true">3</span>
+                <div class="step-art">
+                  <svg viewBox="0 0 80 80" aria-hidden="true">
+                    <rect x="12" y="10" width="50" height="50" rx="6" fill="#fff" stroke="#0E1F44" stroke-width="2.5"/>
+                    <rect x="18" y="18" width="20" height="4" rx="2" fill="#B9C6E4"/><rect x="18" y="27" width="30" height="4" rx="2" fill="#D3DCF1"/><rect x="18" y="36" width="26" height="4" rx="2" fill="#D3DCF1"/>
+                    <circle cx="56" cy="22" r="12" fill="#22A06B" stroke="#fff" stroke-width="3"/>
+                    <polyline points="50 22 54.5 26.5 62 18" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M42 70c-5-3-7-8-6-14l2-8c1-3 5-3 5.5 0l1 5 4-9c1.5-2.5 5-1.5 4.5 1.5l-.5 3 3-1.5c2.5-1 4.5 1.5 3 4l-5 12c-1.5 4-5 7-9 7z" fill="#F6B98A" stroke="#E39A66" stroke-width="1"/>
+                  </svg>
+                </div>
+                <p>3. Confirmez l'inscription en suivant les instructions.</p>
+              </li>
+              <li>
+                <span class="step-n" aria-hidden="true">4</span>
+                <div class="step-art"><svg viewBox="0 0 80 80" aria-hidden="true"><use href="#i-shop-phone"/></svg></div>
+                <p>4. Votre numéro de téléphone devient utilisable comme code marchand.</p>
+              </li>
+            </ol>
+          </article>
+
+          <form id="form" class="vendor-form" novalidate autocomplete="on">
+            <div class="field">
+              <label for="f-n"><svg class="ic lic"><use href="#i-store"/></svg>Nom commercial</label>
+              <div class="inp">
+                <svg class="ic gic" aria-hidden="true"><use href="#i-store"/></svg>
+                <input id="f-n" name="organization" type="text" maxlength="40" autocomplete="organization" placeholder="Entrez votre nom commercial" required aria-describedby="e-n">
+              </div>
+              <p class="err" id="e-n" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-po"><svg class="ic lic"><use href="#i-phone"/></svg>Numéro Orange Money <span class="opt">(facultatif)</span></label>
+              <div class="inp">
+                <svg class="opicon" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="4" fill="#FF7900"/><text x="18" y="32" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Montserrat, system-ui, sans-serif">Orange</text></svg>
+                <input id="f-po" name="tel" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" aria-describedby="h-p e-po">
+              </div>
+              <p class="err" id="e-po" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-pm"><svg class="ic lic"><use href="#i-userphone"/></svg>Numéro Moov Money <span class="opt">(facultatif)</span></label>
+              <div class="inp">
+                <svg class="opicon" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="5" fill="#1B5EAB"/><text x="18" y="17" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Montserrat, system-ui, sans-serif">Moov</text><text x="16" y="26" text-anchor="middle" font-size="5.6" font-weight="600" fill="#fff" font-family="Montserrat, system-ui, sans-serif">africa</text><path d="M26 22l5 3-5 3z" fill="#F7870F"/></svg>
+                <input id="f-pm" name="tel-moov" type="tel" inputmode="tel" autocomplete="off" placeholder="66 12 34 56" aria-describedby="h-p e-pm">
+              </div>
+              <p class="hint" id="h-p">Renseignez au moins un des deux. Vos numéros sont cachés : ni dans le lien, ni affichés à vos clients. Le client ne verra que les opérateurs pour lesquels vous avez saisi un numéro.</p>
+              <p class="err" id="e-pm" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-photo">Photo ou logo <span class="opt">(facultatif)</span></label>
+              <div class="photo-row">
+                <img id="photo-preview" class="avatar" alt="Aperçu de votre photo" hidden>
+                <span id="photo-empty" class="avatar empty" aria-hidden="true"><svg class="ic"><use href="#i-store"/></svg></span>
+                <div class="photo-actions">
+                  <input id="f-photo" class="file-input" type="file" accept="image/*">
+                  <label for="f-photo" id="photo-pick" class="btn secondary small"><svg class="ic"><use href="#i-image"/></svg><span id="photo-pick-text">Choisir une photo</span></label>
+                  <button id="photo-remove" class="linkish" type="button" hidden>Retirer la photo</button>
+                </div>
+              </div>
+              <p class="hint">Votre nom et votre photo s'affichent sur la page de paiement de votre client : il reconnaît tout de suite à qui il paie.</p>
+              <p class="err" id="e-photo" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-a">Montant demandé</label>
+              <div class="suffix"><input id="f-a" name="amount" type="text" inputmode="numeric" autocomplete="off" placeholder="15 000" required aria-describedby="e-a"><span>FCFA</span></div>
+              <p class="err" id="e-a" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-d">Description du paiement <span class="opt">(facultatif)</span></label>
+              <input id="f-d" name="description" type="text" maxlength="120" autocomplete="off" placeholder="Sac de riz de 50 kg" aria-describedby="e-d">
+              <p class="err" id="e-d" role="alert"></p>
+            </div>
+            <div class="field">
+              <label for="f-h">Durée de validité du lien</label>
+              <select id="f-h" name="validity" aria-describedby="e-h"></select>
+              <p class="err" id="e-h" role="alert"></p>
+            </div>
+
+            <button class="btn primary block big" type="submit"><svg class="ic"><use href="#i-arrow"/></svg>Générer le lien</button>
+            <p id="form-err" class="err center" role="alert"></p>
+            <button id="forget" class="linkish" type="button" hidden>Effacer mon nom et mon numéro de cet appareil</button>
+          </form>
+
+          <!-- Panneau publicitaire (contenu réglé dans config.js > ads ; masqué s'il est désactivé) -->
+          <aside id="ad-panel" class="card ad-card" aria-label="Publicité" hidden>
+            <span class="ad-tag">Publicité</span>
+            <img id="ad-img" class="ad-img" alt="" hidden>
+            <div class="ad-body">
+              <h2 id="ad-title"></h2>
+              <p id="ad-text"></p>
+              <a id="ad-cta" class="btn primary small" target="_blank" rel="noopener noreferrer sponsored" hidden></a>
+            </div>
+          </aside>
+
+          <section id="sub-card" class="card sub-card" aria-live="polite">
+            <h2>Mon abonnement</h2>
+            <p id="sub-status" class="sub-status"></p>
+            <dl class="sub-facts">
+              <div><dt>Prix</dt><dd id="sub-price">…</dd></div>
+              <div><dt>Durée</dt><dd id="sub-days">…</dd></div>
+              <div id="sub-exp-row" hidden><dt>Expire le</dt><dd id="sub-exp"></dd></div>
+            </dl>
+            <p id="sub-note" class="hint"></p>
+            <button id="sub-btn" class="btn primary block" type="button" hidden><svg class="ic"><use href="#i-arrow"/></svg><span id="sub-btn-text">S'abonner</span></button>
+            <p id="sub-err" class="err center" role="alert"></p>
+          </section>
+        </div>
+
+        <div id="result" class="card result" hidden aria-live="polite">
+          <h2>Lien prêt</h2>
+          <p id="r-summary" class="summary"></p>
+          <p id="r-expiry" class="expiry"></p>
+          <div class="copyrow">
+            <input id="r-link" type="text" readonly aria-label="Lien de paiement">
+            <button id="r-copy" class="btn secondary" type="button"><svg class="ic"><use href="#i-copy"/></svg><span>Copier</span></button>
+          </div>
+          <div class="actions">
+            <a id="r-wa" class="btn primary" target="_blank" rel="noopener noreferrer"><svg class="ic"><use href="#i-chat"/></svg>WhatsApp</a>
+            <a id="r-sms" class="btn secondary"><svg class="ic"><use href="#i-sms"/></svg>SMS</a>
+            <button id="r-share" class="btn secondary" type="button" hidden><svg class="ic"><use href="#i-share"/></svg>Partager</button>
+            <a id="r-track" class="btn secondary"><svg class="ic"><use href="#i-check"/></svg>Suivre le paiement</a>
+          </div>
+          <button id="r-new" class="btn ghost block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Nouveau lien</button>
+        </div>
+
+        <div id="recent-box" class="card" hidden>
+          <h2>Mes liens récents</h2>
+          <ul id="recent" class="recent"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Suivi vendeur -->
+    <section id="view-track" hidden>
+      <article class="card pay-card">
+        <p class="muted">Suivi du paiement</p>
+        <img id="t-photo" class="avatar big-avatar" alt="" hidden>
+        <h1 id="t-name"></h1>
+        <p class="amount"><span id="t-amount"></span><small>FCFA</small></p>
+        <p id="t-desc" class="desc"></p>
+        <p id="t-state" class="state" role="status" aria-live="polite"></p>
+        <ul id="t-list" class="proofs"></ul>
+        <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>La confirmation vient du SMS reçu par le téléphone du client, vérifié automatiquement (montant, bénéficiaire, numéro expéditeur, transaction unique). Pour un montant important, contrôlez aussi le solde de votre compte Orange Money ou Moov Money avant de livrer.</span></p>
+        <a class="btn ghost block" href="./">Retour</a>
+      </article>
+    </section>
+
+    <!-- Vue client -->
+    <section id="view-pay" hidden>
+      <article class="card pay-card">
+        <p class="muted">Paiement à</p>
+        <img id="pay-photo" class="avatar big-avatar" alt="" hidden>
+        <h1 id="pay-name"></h1>
+        <p class="amount"><span id="pay-amount"></span><small>FCFA</small></p>
+        <p id="pay-desc" class="desc"></p>
+
+        <div class="route" aria-hidden="true">
+          <span class="node"><svg class="ic"><use href="#i-phone"/></svg></span>
+          <span class="wire"><i></i></span>
+          <span class="node"><svg class="ic"><use href="#i-store"/></svg></span>
+        </div>
+        <p class="route-label"><span>Votre compte Mobile Money</span><span id="pay-name-2"></span></p>
+
+        <!-- 1. Choix de l'opérateur, puis numéro qui envoie l'argent -->
+        <div id="step-1">
+          <p id="choose-label" class="choose">Choisissez votre opérateur :</p>
+          <div id="ops" class="ops"></div>
+          <div id="payer-box" class="field payer-field" hidden>
+            <label id="l-payer" for="f-payer">Votre numéro Mobile Money (celui qui envoie l’argent)</label>
+            <input id="f-payer" name="payer" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56" required aria-describedby="h-payer e-payer">
+            <p class="hint" id="h-payer">Obligatoire. MAYA-PAY le compare au numéro de l’expéditeur du SMS de confirmation : si les numéros ne correspondent pas, le paiement n’est pas validé.</p>
+            <p class="err" id="e-payer" role="alert"></p>
+            <div class="consent">
+              <input id="f-consent" type="checkbox" aria-describedby="e-consent">
+              <div class="c-body">
+                <label for="f-consent"><span class="c-main">Je lance moi-même ce paiement depuis mon compte Mobile Money.</span><span class="c-sub">J’accepte la <a href="privacy.html" target="_blank" rel="noopener">politique de confidentialité</a> et la lecture du SMS de confirmation de mon opérateur.</span></label>
+                <p class="c-saved" id="c-saved" hidden></p>
+                <details class="c-more">
+                  <summary>En savoir plus</summary>
+                  <p>Le client initie le paiement : MAYA-PAY prépare seulement le code, et vous le validez avec votre code PIN. MAYA-PAY ne détient pas votre argent, ne le fait pas transiter et ne garantit pas le vendeur.</p>
+                </details>
+              </div>
+            </div>
+            <p class="err" id="e-consent" role="alert"></p>
+            <button id="go-pay" class="btn primary block big" type="button">Payer</button>
+          </div>
+          <div id="app-gate" class="gate" hidden>
+            <p class="gate-title"><strong>Pour payer, utilisez l’application MAYA-PAY.</strong></p>
+            <p class="muted">Elle lance le paiement directement sur votre SIM, sans afficher le numéro du vendeur, et confirme le paiement automatiquement.</p>
+            <a id="app-open" class="btn primary block big" href="#">J’ai déjà l’application : ouvrir ce paiement</a>
+            <p class="muted small-note">Pas encore installée ? Téléchargez-la ci-dessous.</p>
+            <a id="apk-link" class="btn secondary block" href="MAYA-PAY.apk" download>Télécharger l’application</a>
+            <p class="muted small-note">Après le téléchargement, ouvrez le fichier. Si le téléphone le demande, autorisez l’installation d’applications depuis cette source.</p>
+          </div>
+          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span><strong>C’est vous qui lancez le paiement.</strong> MAYA-PAY prépare seulement le code ; votre opérateur vous demandera de le valider avec votre code PIN, que MAYA-PAY ne connaît jamais. Le bénéficiaire affiché doit être <strong id="warn-name"></strong>.</span></p>
+          <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Premier paiement : testez toujours avec un petit montant.</span></p>
+        </div>
+
+        <!-- 2. Session ouverte (2 minutes) -->
+        <div id="step-2" hidden>
+          <div class="timer" role="timer" aria-live="off">
+            <svg class="ic"><use href="#i-clock"/></svg>
+            <span>Session ouverte, fermeture dans</span>
+            <strong id="countdown">02:00</strong>
+          </div>
+          <div class="bar"><i id="bar"></i></div>
+          <p>Le paiement <strong id="op-name"></strong> est lancé. Validez-le avec votre code PIN chez votre opérateur : la confirmation est automatique.</p>
+          <button id="redial" class="btn secondary block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Relancer le paiement</button>
+        </div>
+
+        <!-- 3. Session fermée -->
+        <div id="step-3" hidden>
+          <h2>Session fermée</h2>
+          <p>Le délai de 2 minutes est dépassé : le code a été effacé. Si l'opération n'est pas terminée, ouvrez-la.</p>
+          <button id="reopen" class="btn primary block" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Ouvrir une opération</button>
+        </div>
+
+        <!-- Confirmation automatique (SMS lu par l'application) -->
+        <div id="auto" class="auto" role="status" aria-live="polite" hidden>
+          <span class="auto-ic" aria-hidden="true"><svg class="ic"><use href="#i-phone"/></svg></span>
+          <div class="auto-body">
+            <p id="auto-title" class="auto-title"></p>
+            <p id="auto-text" class="muted"></p>
+          </div>
+        </div>
+
+        <!-- Détecteur : cercle futuriste pendant la recherche du SMS -->
+        <div id="scan" class="scan" role="status" aria-live="polite" hidden>
+          <div class="radar" aria-hidden="true">
+            <i class="rg rg1"></i><i class="rg rg3"></i>
+            <i class="sweep"></i>
+            <span class="blip b1"></span><span class="blip b2"></span>
+            <span class="core"><svg class="ic"><use href="#i-sms"/></svg></span>
+          </div>
+          <div class="scan-body">
+            <p class="scan-label">Détection du SMS en cours<span class="dots" aria-hidden="true"></span></p>
+            <p class="scan-sub">Analyse du message de votre opérateur</p>
+          </div>
+          <i class="scan-bar" aria-hidden="true"></i>
+        </div>
+
+        <!-- Reçu : opération réussie -->
+        <div id="receipt" class="receipt" hidden></div>
+        <div id="verdict" class="verdict" role="status" aria-live="polite" hidden></div>
+        <a id="sub-back" class="btn secondary block" href="#" hidden>Retour à mon espace vendeur</a>
+      </article>
+    </section>
+
+    <!-- Lien invalide -->
+    <section id="view-error" hidden>
+      <article class="card">
+        <h1>Lien de paiement invalide</h1>
+        <p class="lead">Ce lien est incomplet, modifié ou expiré. Demandez un nouveau lien au vendeur.</p>
+        <a class="btn secondary" href="./">Créer mon propre lien</a>
+      </article>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <p><strong>MAYA-PAY n'est pas un agrégateur de paiement.</strong> C'est un simple raccourci de lien qui facilite les paiements mobiles. MAYA-PAY ne détient ni ne stocke aucun argent et ne garantit pas les produits ou services du vendeur. Faites toujours un premier test avec un petit montant.</p>
+    <p>Le paiement est effectué par Orange Money ou Moov Money, de compte à compte. <strong>Le client initie le paiement :</strong> MAYA-PAY prépare le code, le client le valide avec son code PIN.</p>
+    <p><a href="privacy.html" style="color:#fff">Politique de confidentialité et conditions d'utilisation</a></p>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="support.js"></script>
+</body>
+</html>
