@@ -41,12 +41,9 @@ const keep = (patch) => ctx.store.set({ express: { ...saved(), ...patch } });
 const shopLink = (id) => `${location.origin}${location.pathname.replace(/index\.html$/, '')}#/express?s=${id}`;
 
 function rows() {
-  return [...$('x-lines').children].map((li) => {
-    const [n, p] = li.querySelectorAll('input');
-    return { li, n, p };
-  });
+  return [...$('x-lines').children].map((li) => ({ li, n: li.querySelector('.x-name'), p: li.querySelector('.x-price'), ph: li._ph || '' }));
 }
-const draft = () => rows().map((r) => ({ n: r.n.value, p: r.p.value })).filter((r) => r.n.trim() || r.p.trim());
+const draft = () => rows().map((r) => ({ n: r.n.value, p: r.p.value, ph: r.ph })).filter((r) => r.n.trim() || r.p.trim());
 
 // Lignes valides, et première ligne à corriger (les lignes entièrement vides sont ignorées).
 function readProducts() {
@@ -58,7 +55,7 @@ function readProducts() {
     const p = toInt(r.p.value);
     if (!n) bad = bad || { f: r.n, msg: 'Donnez un nom à chaque produit.' };
     else if (!(p >= 1 && p <= CONFIG.amount.max)) bad = bad || { f: r.p, msg: 'Saisissez le prix en chiffres (1 à ' + formatAmount(CONFIG.amount.max) + ').' };
-    else items.push({ n, p });
+    else items.push(r.ph ? { n, p, ph: r.ph } : { n, p });
   }
   return { items, bad };
 }
@@ -71,17 +68,63 @@ function input(label, attrs) {
   return Object.assign(el, attrs);
 }
 
-function addRow(name, price, focus) {
+// Photo du produit : petit carré JPEG préparé sur le téléphone (facultatif).
+function setupPic(li) {
+  const box = mk('div', 'x-picbox');
+  const pic = mk('button', 'x-pic');
+  pic.type = 'button';
+  const file = document.createElement('input');
+  file.type = 'file';
+  file.accept = 'image/*';
+  file.hidden = true;
+  const clear = mk('button', 'x-pic-del', '×');
+  clear.type = 'button';
+  clear.setAttribute('aria-label', 'Retirer la photo du produit');
+  const paint = () => {
+    pic.replaceChildren();
+    if (li._ph) {
+      const img = mk('img');
+      img.alt = '';
+      ctx.setAvatar(img, li._ph);
+      pic.appendChild(img);
+    } else {
+      pic.appendChild(mk('span', 'x-pic-empty', '📷'));
+    }
+    pic.setAttribute('aria-label', li._ph ? 'Changer la photo du produit' : 'Ajouter une photo du produit (facultatif)');
+    clear.hidden = !li._ph;
+  };
+  pic.onclick = () => file.click();
+  clear.onclick = () => { li._ph = ''; paint(); sync(); };
+  file.addEventListener('change', async () => {
+    const f = file.files && file.files[0];
+    file.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) return ctx.toast('Choisissez une image.');
+    try {
+      li._ph = await ctx.makeThumb(f);
+      paint();
+      sync();
+    } catch {
+      ctx.toast('Cette image ne peut pas être utilisée. Essayez une autre photo.');
+    }
+  });
+  paint();
+  box.append(pic, clear, file);
+  return box;
+}
+
+function addRow(name, price, focus, photo) {
   const list = $('x-lines');
   if (list.children.length >= MAX) return;
   const li = document.createElement('li');
+  li._ph = photo || '';
   const n = input('Nom du produit', { className: 'x-name', placeholder: 'Produit (ex. savon)', maxLength: 40, value: name || '' });
   const p = input('Prix du produit en FCFA', { className: 'x-price', placeholder: 'Prix FCFA', inputMode: 'numeric', maxLength: 10, value: price || '' });
   const del = mk('button', 'c-del', '×');
   del.type = 'button';
   del.setAttribute('aria-label', 'Retirer ce produit');
   del.onclick = () => { li.remove(); if (!list.children.length) addRow('', '', false); sync(); };
-  li.append(n, p, del);
+  li.append(setupPic(li), n, p, del);
   list.appendChild(li);
   if (focus) n.focus();
   sync();
@@ -109,7 +152,7 @@ function renderResult() {
 function render() {
   if (!$('x-lines').children.length) {
     const list = (saved().products || []).slice(0, MAX);
-    if (list.length) for (const r of list) addRow(String(r.n ?? ''), String(r.p ?? ''), false);
+    if (list.length) for (const r of list) addRow(String(r.n ?? ''), String(r.p ?? ''), false, typeof r.ph === 'string' ? r.ph : '');
     else addRow('', '', false);
   }
   renderResult();
@@ -143,9 +186,9 @@ function setupVendor() {
     btn.disabled = true;
     const s = saved();
     try {
-      const r = await expressSave({ id: s.id, key: s.key, n, po, pm, ph: ctx.getPhoto(), products: items });
+      const r = await expressSave({ id: s.id, key: s.key, n, po, pm, ph: ctx.getPhoto(), products: items.map(({ ph, ...r }) => (ph ? { ...r, i: ph } : r)) });
       if (!r || !validId(r.id) || !validKey(r.key)) throw new Error('bad response');
-      keep({ id: r.id, key: r.key, n, products: items.map((i) => ({ n: i.n, p: String(i.p) })) });
+      keep({ id: r.id, key: r.key, n, products: items.map((i) => ({ n: i.n, p: String(i.p), ph: i.ph || '' })) });
       ctx.toast(s.id ? 'Vitrine mise à jour.' : 'Vitrine créée.');
       renderResult();
     } catch (e) {
@@ -159,6 +202,7 @@ function setupVendor() {
         err.textContent = 'Cette vitrine n’est plus accessible depuis cet appareil. Touchez de nouveau le bouton pour en créer une nouvelle.';
       } else {
         err.textContent = e && e.code === 'rate_limited' ? 'Trop de demandes. Réessayez dans une heure.'
+          : e && e.code === 'invalid_product_photo' ? 'Une photo de produit ne peut pas être utilisée. Retirez-la ou changez-la.'
           : e && e.code === 'invalid_photo' ? 'La photo ne peut pas être utilisée. Changez-la dans le formulaire ci-dessus.'
           : 'Connexion impossible. Réessayez.';
       }
@@ -192,6 +236,14 @@ function renderShop() {
   ul.replaceChildren();
   for (const p of shop.products) {
     const li = document.createElement('li');
+    if (p.ph) {
+      const img = mk('img', 'p-thumb');
+      img.alt = '';
+      img.width = img.height = 56;
+      img.loading = 'lazy';
+      ctx.setAvatar(img, p.ph);
+      li.appendChild(img);
+    }
     const info = mk('span', 'p-info');
     info.append(mk('strong', null, p.n), mk('small', null, money(p.p)));
     const out = mk('output', 'p-qty', '0');
@@ -226,7 +278,7 @@ export async function openShop(id) {
     products: o.products
       .filter((p) => p && UUID.test(String(p.id)) && Number.isInteger(Number(p.p)) && Number(p.p) >= 1)
       .slice(0, MAX)
-      .map((p) => ({ id: String(p.id), n: String(p.n ?? '').slice(0, 40), p: Number(p.p) })),
+      .map((p) => ({ id: String(p.id), n: String(p.n ?? '').slice(0, 40), p: Number(p.p), ph: typeof p.i === 'string' ? p.i : '' })),
   };
   document.title = `${shop.name} – Maya Express`;
   $('s-err').textContent = '';

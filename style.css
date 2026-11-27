@@ -484,14 +484,23 @@ input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(2
 /* Maya Express : vitrine du vendeur, page du client, commandes */
 .express-card h2 { margin-bottom: 8px; }
 .express-card .hint { margin: 0 0 12px; }
-.x-lines li { grid-template-columns: minmax(0, 1fr) 96px 40px; }
+.x-lines li { grid-template-columns: 48px minmax(0, 1fr) 84px 40px; align-items: start; }
+.x-lines .x-name { grid-column: auto; }
+.x-picbox { position: relative; width: 48px; height: 44px; }
+.x-pic { width: 44px; height: 44px; padding: 0; border: 1px dashed #CBD6F2; border-radius: 10px; background: #fff; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.x-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.x-pic-empty { font-size: 1.2rem; line-height: 1; }
+.x-pic-del { position: absolute; top: -6px; right: 0; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: #1E1E21; color: #fff; font-size: .9rem; line-height: 20px; cursor: pointer; }
+.x-pic-del[hidden] { display: none; }
 .x-lines .x-price { text-align: right; }
 .x-result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .shop-card .field { text-align: left; margin: 12px 0 0; }
 .shop-card .inp input { padding-left: 14px; }
 .shop-list { list-style: none; margin: 12px 0; padding: 0; text-align: left; }
 .shop-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.shop-list .p-info { display: flex; flex-direction: column; min-width: 0; }
+.shop-list .p-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.shop-list .p-thumb { width: 56px; height: 56px; flex: none; border-radius: 10px; object-fit: cover; background: #EEF1F8; display: block; }
+.shop-list .p-thumb[hidden] { display: none; }
 .shop-list .p-info strong { overflow-wrap: anywhere; }
 .shop-list .p-info small { color: var(--mute); font-variant-numeric: tabular-nums; }
 .stepper { display: flex; align-items: center; gap: 8px; flex: none; }

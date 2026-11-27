@@ -58,7 +58,7 @@ function setAvatar(img, src) {
   if (ok) img.src = ok; else img.removeAttribute('src');
   img.hidden = !ok;
 }
-async function makeAvatar(file) {
+async function makeAvatar(file, steps = [[CONFIG.photo.side, 0.8], [CONFIG.photo.side, 0.65], [192, 0.6], [160, 0.5], [128, 0.5]], maxChars = CONFIG.photo.maxChars) {
   let src;
   if (window.createImageBitmap) {
     try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { /* repli ci-dessous */ }
@@ -72,18 +72,21 @@ async function makeAvatar(file) {
   const sw = src.width, sh = src.height;
   if (!sw || !sh) throw new Error('decode');
   const crop = Math.min(sw, sh);
-  for (const [side, q] of [[CONFIG.photo.side, 0.8], [CONFIG.photo.side, 0.65], [192, 0.6], [160, 0.5], [128, 0.5]]) {
+  for (const [side, q] of steps) {
     const c = document.createElement('canvas');
     c.width = c.height = side;
     const ctx = c.getContext('2d');
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, side, side);
     ctx.drawImage(src, (sw - crop) / 2, (sh - crop) / 2, crop, crop, 0, 0, side, side);
     const data = c.toDataURL('image/jpeg', q);
-    if (PHOTO_RE.test(data) && data.length <= CONFIG.photo.maxChars) { if (src.close) src.close(); return data; }
+    if (PHOTO_RE.test(data) && data.length <= maxChars) { if (src.close) src.close(); return data; }
   }
   if (src.close) src.close();
   throw new Error('too_big');
 }
+
+// Photo de produit (Maya Express) : même traitement que le logo, mais beaucoup plus petite.
+const makeThumb = (file) => makeAvatar(file, [[160, 0.72], [128, 0.65], [112, 0.55], [96, 0.5], [80, 0.45]], CONFIG.express.thumbMaxChars);
 
 function invalid() {
   document.title = 'Lien invalide – MAYA-PAY';
@@ -230,7 +233,7 @@ function showVendor() {
 }
 
 const cart = setupCart();
-const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
+const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, makeThumb, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
 
 function setErrors(errors) {
   for (const k of Object.keys(fields)) {

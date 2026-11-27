@@ -52,7 +52,7 @@ export const CONFIG = {
   ads: { enabled: true },
 
   // Maya Express (vitrine en ligne) : nombre maximum de produits par vitrine (30 côté serveur).
-  express: { maxProducts: 30 },
+  express: { maxProducts: 30, thumbMaxChars: 9000 }, // photo de produit : petit JPEG carré (≈ 6 Ko), 12 000 caractères max côté serveur
 
   // Rafraîchissement automatique de la page de suivi du vendeur (secondes).
   trackRefreshSeconds: 10,
