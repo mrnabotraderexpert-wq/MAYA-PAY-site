@@ -467,3 +467,41 @@ input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(2
 .ad-body p { margin: 0; color: var(--mute); font-size: .92rem; line-height: 1.4; }
 .ad-body .btn { justify-self: start; margin-top: 4px; }
 @media (max-width: 420px) { .ad-card { padding: 16px 14px; gap: 10px; } .ad-img { width: 56px; height: 56px; } }
+
+/* Panier du vendeur */
+#cart-open { margin-bottom: 14px; }
+.cart { margin-bottom: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #F6F8FE; }
+.cart-title { margin: 0 0 8px; } .cart-title small { display: block; color: var(--mute); }
+.cart-lines { list-style: none; margin: 0 0 10px; padding: 0; }
+.cart-lines li { display: grid; grid-template-columns: minmax(0, 1fr) 64px 40px; gap: 6px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.cart-lines input { width: 100%; min-width: 0; height: 44px; padding: 0 10px; border: 1px solid #CBD6F2; border-radius: 10px; font: inherit; font-size: 1rem; background: #fff; }
+.cart-lines .c-name { grid-column: 1 / -1; }
+.cart-lines .c-qty { text-align: center; padding: 0 4px; }
+.cart-lines .c-del { height: 44px; border: 1px solid #CBD6F2; border-radius: 10px; background: #fff; font-size: 1.4rem; cursor: pointer; }
+.cart-sum { display: flex; justify-content: space-between; margin: 12px 0 0; font-size: 1.15rem; }
+#f-a[readonly], #f-d[readonly] { background: #EEF1F8; }
+
+/* Maya Express : vitrine du vendeur, page du client, commandes */
+.express-card h2 { margin-bottom: 8px; }
+.express-card .hint { margin: 0 0 12px; }
+.x-lines li { grid-template-columns: minmax(0, 1fr) 96px 40px; }
+.x-lines .x-price { text-align: right; }
+.x-result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.shop-card .field { text-align: left; margin: 12px 0 0; }
+.shop-card .inp input { padding-left: 14px; }
+.shop-list { list-style: none; margin: 12px 0; padding: 0; text-align: left; }
+.shop-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.shop-list .p-info { display: flex; flex-direction: column; min-width: 0; }
+.shop-list .p-info strong { overflow-wrap: anywhere; }
+.shop-list .p-info small { color: var(--mute); font-variant-numeric: tabular-nums; }
+.stepper { display: flex; align-items: center; gap: 8px; flex: none; }
+.stepper .btn { min-width: 44px; min-height: 44px; padding: 0; font-size: 1.25rem; }
+.stepper output { min-width: 28px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.shop-card .cart-sum { margin-top: 14px; }
+.shop-card #s-order { margin-top: 14px; }
+.orders { text-align: left; }
+.orders .o-buyer { display: block; overflow-wrap: anywhere; }
+.orders .o-items { list-style: none; margin: 6px 0; padding: 0; font-size: .875rem; }
+.proofs .o-items li { border: 0; padding: 0; margin: 0; }
+.orders .o-total { font-weight: 700; margin: 6px 0 0; }
+.badge:not(.ok):not(.warn) { background: #E7ECF8; color: var(--mute); }

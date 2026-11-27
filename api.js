@@ -67,3 +67,13 @@ export const adsPublic = () => rpc('mayapay_ads_public', {});
 export const adminAdsList = (pass) => rpc('mayapay_admin_ads_list', { p_pass: pass });
 export const adminAdSave = (pass, ad) => rpc('mayapay_admin_ad_save', { p_pass: pass, p_id: ad.id ?? null, p_title: ad.title, p_text: ad.text, p_cta: ad.cta, p_url: ad.url, p_image: ad.image || null, p_active: ad.active });
 export const adminAdAction = (pass, id, action) => rpc('mayapay_admin_ad_action', { p_pass: pass, p_id: id, p_action: action });
+
+// ---- Maya Express : vitrine (catalogue) du vendeur et commandes ----
+// Le prix de chaque produit et le total sont toujours recalculés par le serveur ; la licence vendeur est vérifiée comme pour les liens.
+export const expressSave = (v) => rpc('mayapay_express_save', { p_id: v.id || null, p_key: v.key || null, p_name: v.n, p_orange: v.po || null, p_moov: v.pm || null, p_photo: v.ph || null, p_products: v.products }, 30000);
+// Page publique du client : nom, photo, opérateurs, produits (jamais les numéros du vendeur).
+export const expressGet = (id) => rpc('mayapay_express_get', { p_id: id });
+// Le client valide son panier : le serveur crée un lien de paiement MAYA-PAY (24 h) et retourne son identifiant.
+export const expressOrder = (id, items, buyer, phone) => rpc('mayapay_express_order', { p_id: id, p_items: items, p_buyer: buyer, p_phone: phone }, 30000);
+// Commandes reçues (clé privée de la vitrine), avec l'état du paiement vérifié par SMS.
+export const expressOrders = (id, key) => rpc('mayapay_express_orders', { p_id: id, p_key: key });

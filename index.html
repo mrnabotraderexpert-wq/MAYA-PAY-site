@@ -3,12 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>MAYA-PAY</title>
-  <meta name="description" content="MAYA-PAY : un raccourci de lien pour faciliter les paiements Mobile Money (Orange Money, Moov Money).">
+  <title>MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali</title>
+  <meta name="description" content="MAYA-PAY : créez et partagez un lien pour faciliter les paiements Orange Money et Moov Money au Mali. De compte à compte, sans que MAYA-PAY détienne l'argent.">
   <meta name="theme-color" content="#1E1E21">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://maya-pay.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="MAYA-PAY">
+  <meta property="og:url" content="https://maya-pay.com/">
+  <meta property="og:title" content="MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali">
+  <meta property="og:description" content="MAYA-PAY : créez et partagez un lien pour faciliter les paiements Orange Money et Moov Money au Mali. De compte à compte, sans que MAYA-PAY détienne l'argent.">
+  <meta property="og:image" content="https://maya-pay.com/og-maya-pay.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -74,6 +84,7 @@
   <nav id="menu" class="menu" aria-label="Menu principal" hidden>
     <a href="#/" data-go="view-vendor">Créer un lien de paiement</a>
     <a href="#/" data-go="sub-card">Mon abonnement</a>
+    <a href="#/" data-go="express-card">Maya Express</a>
     <a href="#/" data-go="recent-box">Mes liens récents</a>
     <button id="install" class="menu-install" type="button" hidden>Installer l'application</button>
   </nav>
@@ -85,8 +96,9 @@
     <section id="view-desktop" hidden>
       <img class="banner" src="banner.jpg" width="1200" height="515" alt="MAYA-PAY, the future of mobile payments" fetchpriority="high">
       <article class="card pay-card">
-        <h1>Ouvrez MAYA-PAY sur votre téléphone</h1>
-        <p class="lead">MAYA-PAY sert aux paiements mobiles (Orange Money, Moov Money) et fonctionne uniquement sur téléphone.</p>
+        <h1>Liens de paiement Orange Money et Moov Money au Mali</h1>
+        <p class="lead">Avec MAYA-PAY, le vendeur crée un lien et le partage à son client. Le client paie depuis son compte Orange Money ou Moov Money vers celui du vendeur et valide avec son code PIN. MAYA-PAY ne détient pas l'argent.</p>
+        <p><strong>Pour l'utiliser, ouvrez maya-pay.com sur votre téléphone.</strong></p>
       </article>
     </section>
 
@@ -201,6 +213,15 @@
               <p class="err" id="e-photo" role="alert"></p>
             </div>
             <div class="field">
+              <button id="cart-open" class="btn secondary block" type="button">🛒 Plusieurs articles ? Faire le total</button>
+              <div id="cart" class="cart" role="group" aria-label="Panier" hidden>
+                <p class="cart-title"><strong>🛒 Panier</strong> <small>Nom · Prix d'un article · Quantité</small></p>
+                <ul id="cart-lines" class="cart-lines"></ul>
+                <button id="cart-add" class="btn secondary block small" type="button">+ Ajouter un article</button>
+                <p class="cart-sum">Total : <strong id="cart-total" aria-live="polite">0 FCFA</strong></p>
+                <p id="cart-err" class="err" role="alert"></p>
+                <button id="cart-close" class="linkish" type="button">Retirer le panier et saisir le montant moi-même</button>
+              </div>
               <label for="f-a">Montant demandé</label>
               <div class="suffix"><input id="f-a" name="amount" type="text" inputmode="numeric" autocomplete="off" placeholder="15 000" required aria-describedby="e-a"><span>FCFA</span></div>
               <p class="err" id="e-a" role="alert"></p>
@@ -243,6 +264,32 @@
             <p id="sub-note" class="hint"></p>
             <button id="sub-btn" class="btn primary block" type="button" hidden><svg class="ic"><use href="#i-arrow"/></svg><span id="sub-btn-text">S'abonner</span></button>
             <p id="sub-err" class="err center" role="alert"></p>
+          </section>
+
+          <section id="express-card" class="card express-card">
+            <h2>Maya Express <span class="opt">Ma vitrine en ligne</span></h2>
+            <p class="hint">Vos clients choisissent leurs produits, le total se calcule tout seul, ils paient par Orange Money ou Moov Money et vous recevez la commande. Inclus dans votre abonnement. Pas de paiement à la livraison.</p>
+            <p class="hint">Nom, numéros et photo : ceux du formulaire « Créer un lien de paiement ».</p>
+            <p class="cart-title"><strong>Mes produits</strong> <small>Nom · Prix en FCFA</small></p>
+            <ul id="x-lines" class="cart-lines x-lines"></ul>
+            <button id="x-add" class="btn secondary block small" type="button">+ Ajouter un produit</button>
+            <p id="x-err" class="err" role="alert"></p>
+            <button id="x-save" class="btn primary block" type="button"><svg class="ic"><use href="#i-store"/></svg><span id="x-save-text">Créer ma vitrine</span></button>
+            <div id="x-result" class="x-result" hidden>
+              <p class="summary">Ma vitrine est en ligne</p>
+              <div class="copyrow">
+                <input id="x-link" type="text" readonly aria-label="Lien de ma vitrine">
+                <button id="x-copy" class="btn secondary" type="button"><svg class="ic"><use href="#i-copy"/></svg><span>Copier</span></button>
+              </div>
+              <div id="x-qr-box" class="qr-box" hidden>
+                <canvas id="x-qr" role="img" aria-label="QR code de ma vitrine"></canvas>
+                <p class="muted qr-hint">Le client peut scanner ce QR avec l’appareil photo de son téléphone.</p>
+              </div>
+              <div class="actions">
+                <a id="x-wa" class="btn primary" target="_blank" rel="noopener noreferrer"><svg class="ic"><use href="#i-chat"/></svg>WhatsApp</a>
+                <a id="x-orders" class="btn secondary" href="#/commandes"><svg class="ic"><use href="#i-check"/></svg>Mes commandes</a>
+              </div>
+            </div>
           </section>
         </div>
 
@@ -397,6 +444,42 @@
     </section>
 
     <!-- Lien invalide -->
+    <!-- Maya Express : page du client (catalogue, panier) -->
+    <section id="view-shop" hidden>
+      <article class="card pay-card shop-card">
+        <p class="muted">Maya Express</p>
+        <img id="s-photo" class="avatar big-avatar" alt="" hidden>
+        <h1 id="s-name"></h1>
+        <p id="s-ops" class="muted"></p>
+        <p id="s-closed" class="err" role="status" hidden>Cette boutique ne prend plus de commande pour le moment.</p>
+        <ul id="s-list" class="shop-list"></ul>
+        <p class="cart-sum">Total : <strong id="s-total" aria-live="polite">0 FCFA</strong></p>
+        <div class="field">
+          <label for="s-buyer">Votre nom</label>
+          <div class="inp"><input id="s-buyer" type="text" maxlength="40" autocomplete="name" placeholder="Votre nom"></div>
+        </div>
+        <div class="field">
+          <label for="s-phone">Votre téléphone</label>
+          <div class="inp"><input id="s-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56"></div>
+        </div>
+        <p id="s-err" class="err" role="alert"></p>
+        <button id="s-order" class="btn primary block big" type="button" disabled><svg class="ic"><use href="#i-arrow"/></svg>Commander et payer</button>
+        <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Vous payez par Orange Money ou Moov Money, directement vers le compte du vendeur : l’argent ne passe jamais par MAYA-PAY. Pas de paiement à la livraison. Votre nom et votre numéro sont transmis au vendeur pour la commande (conservés 90 jours).</span></p>
+      </article>
+    </section>
+
+    <!-- Maya Express : commandes reçues (vendeur) -->
+    <section id="view-orders" hidden>
+      <article class="card pay-card">
+        <p class="muted">Maya Express</p>
+        <h1>Mes commandes</h1>
+        <p id="o-state" class="state" role="status" aria-live="polite"></p>
+        <ul id="o-list" class="proofs orders"></ul>
+        <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>« Payée » signifie que le SMS du client correspond au montant et à votre numéro (vérification automatique). Pour un montant important, contrôlez aussi le solde de votre compte avant de livrer.</span></p>
+        <a class="btn ghost block" href="./">Retour</a>
+      </article>
+    </section>
+
     <section id="view-error" hidden>
       <article class="card">
         <h1>Lien de paiement invalide</h1>

@@ -51,6 +51,9 @@ export const CONFIG = {
   // par l'administrateur dans admin.html > « Publicité ». enabled:false masque le panneau pour tout le monde.
   ads: { enabled: true },
 
+  // Maya Express (vitrine en ligne) : nombre maximum de produits par vitrine (30 côté serveur).
+  express: { maxProducts: 30 },
+
   // Rafraîchissement automatique de la page de suivi du vendeur (secondes).
   trackRefreshSeconds: 10,
 };

@@ -3,10 +3,12 @@ import { validatePayment, validatePayer, parseHash, formatAmount, normalizeNumbe
 import { adsPublic, serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 import { drawQr } from './qr.js';
+import { setupCart } from './cart.js';
+import { initExpress } from './express.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'mayapay.vendor';
-const views = ['view-desktop', 'view-vendor', 'view-track', 'view-pay', 'view-error'];
+const views = ['view-desktop', 'view-vendor', 'view-track', 'view-pay', 'view-shop', 'view-orders', 'view-error'];
 
 // Toutes les données venant du serveur ou d'un lien sont insérées avec textContent, jamais innerHTML.
 
@@ -38,7 +40,7 @@ async function copyText(text) {
 const store = {
   get() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } },
   set(v) { try { localStorage.setItem(STORE_KEY, JSON.stringify({ ...store.get(), ...v })); } catch { /* stockage indisponible */ } },
-  clear() { try { const { links } = store.get(); localStorage.setItem(STORE_KEY, JSON.stringify({ links: links || [] })); } catch { /* ignoré */ } },
+  clear() { try { const { links, express } = store.get(); localStorage.setItem(STORE_KEY, JSON.stringify({ links: links || [], express })); } catch { /* ignoré */ } },
 };
 
 function show(id) {
@@ -99,10 +101,13 @@ function route() {
   wipeSecrets();
   stopPoll();
   stopTrack();
-  if (!isLikelyMobile()) { document.title = 'MAYA-PAY'; return show('view-desktop'); } // téléphone uniquement
+  express.stop();
+  if (!isLikelyMobile()) { document.title = 'MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali'; return show('view-desktop'); } // téléphone uniquement
   if (!serverReady()) return invalid();
   const { path, params } = parseHash(location.hash);
   if (path === '/pay') return validId(params.get('i')) ? loadPay(params.get('i')) : invalid();
+  if (path === '/express') return validId(params.get('s')) ? express.openShop(params.get('s')) : invalid();
+  if (path === '/commandes') return express.openOrders();
   if (path === '/suivi') return validId(params.get('i')) && validKey(params.get('k')) ? showTrack(params.get('i'), params.get('k')) : invalid();
   showVendor();
 }
@@ -208,7 +213,7 @@ async function renderAd() {
 }
 
 function showVendor() {
-  document.title = 'MAYA-PAY – Liens de paiement Mobile Money';
+  document.title = 'MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali';
   show('view-vendor');
   const saved = store.get();
   if (!fields.n.value && saved.n) fields.n.value = saved.n;
@@ -221,7 +226,11 @@ function showVendor() {
   renderRecent();
   refreshSub();
   renderAd();
+  express.render();
 }
+
+const cart = setupCart();
+const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
 
 function setErrors(errors) {
   for (const k of Object.keys(fields)) {
@@ -235,6 +244,8 @@ function setErrors(errors) {
 $('form').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('form-err').textContent = '';
+  const basket = cart.check();
+  if (!basket.ok) return;
   const r = validatePayment({ n: fields.n.value, po: fields.po.value, pm: fields.pm.value, a: fields.a.value, d: fields.d.value, h: fields.h.value });
   setErrors(r.errors);
   if (!r.ok) return;
@@ -276,7 +287,7 @@ $('form').addEventListener('submit', async (e) => {
   $('qr-box').hidden = !qrOk;
   $('r-qr-dl').hidden = !qrOk || inApp();
 
-  const msg = `Bonjour, voici votre lien de paiement MAYA-PAY pour ${r.value.n} : ${amount}${r.value.d ? ` (${r.value.d})` : ''}.\n${link}\nPremier paiement : testez avec un petit montant.`;
+  const msg = `Bonjour, voici votre lien de paiement MAYA-PAY pour ${r.value.n} : ${amount}${basket.detail ? `.\n${basket.detail}` : r.value.d ? ` (${r.value.d}).` : '.'}\n${link}\nPremier paiement : testez avec un petit montant.`;
   $('r-wa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
   $('r-sms').href = 'sms:?&body=' + encodeURIComponent(msg);
   $('r-track').href = `#/suivi?i=${created.id}&k=${created.key}`;
@@ -304,6 +315,7 @@ $('r-qr-dl').addEventListener('click', () => {
 });
 
 $('r-new').addEventListener('click', () => {
+  cart.reset();
   fields.a.value = ''; fields.d.value = '';
   setErrors({});
   $('result').hidden = true;
@@ -360,11 +372,11 @@ function renderSub(info) {
     expRow.hidden = false;
     if (info.suspended) { cls = 'bad'; text = 'Licence suspendue par l’administrateur.'; note = 'Contactez le support MAYA-PAY pour la réactiver.'; canPay = false; }
     else if (info.active) { cls = 'ok'; text = 'Licence active.'; label = 'Renouveler mon abonnement'; note = 'Un renouvellement s’ajoute à la durée qu’il vous reste.'; }
-    else { cls = 'bad'; text = 'Licence expirée.'; label = 'Renouveler mon abonnement'; note = info.free ? '' : 'Vous ne pouvez plus créer de nouveaux liens. Vos anciens liens et votre historique sont conservés.'; }
+    else { cls = 'bad'; text = 'Licence expirée.'; label = 'Renouveler mon abonnement'; note = info.free ? '' : 'Vous ne pouvez plus créer de nouveaux liens ni utiliser Maya Express. Vos anciens liens, vos commandes et votre historique sont conservés.'; }
   } else {
     expRow.hidden = true;
     if (!hasNumber) { text = info.free ? 'Accès gratuit actuellement.' : 'Saisissez votre numéro Orange Money ou Moov Money pour voir l’état de votre licence.'; }
-    else { cls = info.free ? 'ok' : 'bad'; text = info.free ? 'Accès gratuit actuellement.' : 'Aucune licence pour ce numéro.'; if (!info.free) note = 'Un abonnement est nécessaire pour créer des liens de paiement.'; }
+    else { cls = info.free ? 'ok' : 'bad'; text = info.free ? 'Accès gratuit actuellement.' : 'Aucune licence pour ce numéro.'; if (!info.free) note = 'Un abonnement est nécessaire pour créer des liens de paiement et votre vitrine Maya Express.'; }
   }
   if (info.free) note = ['Accès gratuit activé par l’administrateur : l’abonnement n’est pas obligatoire pour le moment.', note].filter(Boolean).join(' ');
   if (!info.available && !info.suspended) note = (note ? note + ' ' : '') + 'Le paiement de l’abonnement n’est pas encore disponible.';
