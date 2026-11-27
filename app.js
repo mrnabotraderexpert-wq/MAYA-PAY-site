@@ -523,7 +523,21 @@ function renderOps() {
     opsBox.appendChild(b);
   }
 }
-const setOpsDisabled = (v) => { opsBox.querySelectorAll('button').forEach((b) => (b.disabled = v)); $('go-pay').disabled = v; };
+// Dans l'application : le paiement est bloqué tant que la lecture des SMS n'est pas autorisée (sinon pas de confirmation automatique).
+const smsOk = () => {
+  if (!inApp() || typeof window.MayaNative.smsReady !== 'function') return true;
+  try { return Boolean(window.MayaNative.smsReady()); } catch { return true; }
+};
+let opsBusy = false;
+function refreshSmsGate() {
+  const ok = smsOk();
+  const g = $('sms-gate');
+  if (g) g.hidden = ok;
+  $('go-pay').disabled = opsBusy || !ok;
+}
+window.onMayaSms = () => refreshSmsGate();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshSmsGate(); });
+const setOpsDisabled = (v) => { opsBusy = v; opsBox.querySelectorAll('button').forEach((b) => (b.disabled = v)); refreshSmsGate(); };
 
 function chooseOp(op) {
   chosenOp = op;
@@ -536,6 +550,7 @@ function chooseOp(op) {
   $('go-pay').textContent = `Payer avec ${operatorLabel(op)}`;
   $('e-payer').textContent = '';
   $('payer-box').hidden = false;
+  refreshSmsGate();
   $('f-payer').focus({ preventScroll: true });
 }
 opsBox.addEventListener('click', (e) => {
@@ -543,6 +558,7 @@ opsBox.addEventListener('click', (e) => {
   if (op) chooseOp(op);
 });
 $('go-pay').addEventListener('click', () => pay(chosenOp));
+$('sms-allow')?.addEventListener('click', () => { try { window.MayaNative.askSms?.(); } catch { /* ignoré */ } });
 
 function showVerdict(kind, title, text) {
   const v = $('verdict');
@@ -624,6 +640,11 @@ $('reopen').addEventListener('click', () => { stopPoll(); disarmNative(); hideOu
 
 async function pay(op) {
   if (!payment || needsApp() || !op) return;
+  if (!smsOk()) { // sécurité : même si le bouton est contourné, pas de paiement sans lecture des SMS
+    refreshSmsGate();
+    try { window.MayaNative.askSms?.(); } catch { /* ignoré */ }
+    return toast('Autorisez la lecture des SMS pour pouvoir payer.');
+  }
   const payer = validatePayer($('f-payer').value);
   if (!payer.ok) {
     $('e-payer').textContent = 'Saisissez le numéro avec lequel vous envoyez l’argent (8 chiffres).';

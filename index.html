@@ -318,6 +318,11 @@
               </div>
             </div>
             <p class="err" id="e-consent" role="alert"></p>
+            <div id="sms-gate" class="gate" hidden>
+              <p class="gate-title"><strong>Autorisez la lecture des SMS pour payer.</strong></p>
+              <p class="muted">MAYA-PAY lit uniquement le SMS de confirmation de votre opérateur, pendant le paiement, pour valider automatiquement. Sans cette autorisation, le paiement est impossible.</p>
+              <button id="sms-allow" class="btn secondary block" type="button">Autoriser la lecture des SMS</button>
+            </div>
             <button id="go-pay" class="btn primary block big" type="button">Payer</button>
           </div>
           <div id="app-gate" class="gate" hidden>

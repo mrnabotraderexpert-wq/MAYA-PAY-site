@@ -125,3 +125,5 @@ Fichiers à envoyer sur GitHub : tous ceux du zip (nouveaux : `admin.html`, `adm
 - `sw.js` : cache `maya-pay-v1-24`. `android-version.json` : version 17 / 1.19.
 - v1.26 : le message « compte marchand » sous le champ Orange (déjà dit dans « Activation Sarali ») est remplacé par un **panneau publicitaire** sous le formulaire, réglé dans `config.js` > `ads` (titre, texte, bouton, lien https, image) ; cache `maya-pay-v1-26`.
 - v1.27 : le panneau publicitaire n'est plus dans `config.js` : **seul l'administrateur** crée, modifie, active/désactive et supprime les annonces (titre, texte, image, bouton + lien https) dans `admin.html` > « Publicité ». Elles sont stockées dans Supabase (`mayapay.ads`, script `maya-pay-ads.sql` du projet Android, déjà appliqué) ; le public ne peut que lire une annonce active. Cache `maya-pay-v1-27`.
+
+- v1.28 : bouton « Payer » bloqué dans l'application tant que la lecture des SMS n'est pas autorisée (`MayaNative.askSms`, `window.onMayaSms`) ; image de la publicité en grand ; indexation Google activée (`noindex` retiré, `robots.txt`, `sitemap.xml`) ; cache du service worker `maya-pay-v1-28`. Nécessite l'APK v1.21.
