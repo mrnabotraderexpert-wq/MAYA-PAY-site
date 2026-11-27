@@ -1,7 +1,7 @@
 // MAYA-PAY : service worker minimal. Réseau d'abord (le site est toujours à jour), cache en secours hors ligne.
 // Ne met jamais en cache le serveur (Supabase), l'APK ni le fichier de version de l'application.
 const CACHE = 'maya-pay-v1-28';
-const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'api.js', 'link.js', 'ussd.js', 'config.js', 'support.js', 'assistant.js',
+const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'api.js', 'link.js', 'qr.js', 'ussd.js', 'config.js', 'support.js', 'assistant.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'logo.png', 'banner.jpg'];
 
 self.addEventListener('install', (e) => {

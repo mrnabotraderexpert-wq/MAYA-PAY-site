@@ -2,6 +2,7 @@ import { CONFIG } from './config.js';
 import { validatePayment, validatePayer, parseHash, formatAmount, normalizeNumber } from './link.js';
 import { adsPublic, serverReady, validId, validKey, createLink, getLink, startSession, CONSENT_VERSION, smsResult, vendorStatus, subInfo, subOrder } from './api.js';
 import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
+import { drawQr } from './qr.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'mayapay.vendor';
@@ -270,6 +271,10 @@ $('form').addEventListener('submit', async (e) => {
   $('r-summary').textContent = r.value.d ? `${amount} – ${r.value.d}` : amount;
   $('r-expiry').textContent = `Valable ${validityLabel(r.value.h)}`;
   $('r-link').value = link;
+  // QR code du lien : le client peut le scanner avec l'application MAYA-PAY ou l'appareil photo.
+  const qrOk = drawQr($('r-qr'), link);
+  $('qr-box').hidden = !qrOk;
+  $('r-qr-dl').hidden = !qrOk || inApp();
 
   const msg = `Bonjour, voici votre lien de paiement MAYA-PAY pour ${r.value.n} : ${amount}${r.value.d ? ` (${r.value.d})` : ''}.\n${link}\nPremier paiement : testez avec un petit montant.`;
   $('r-wa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
@@ -287,6 +292,16 @@ $('r-copy').addEventListener('click', async () => {
   toast((await copyText(lastLink)) ? 'Lien copié.' : 'Copie impossible : sélectionnez le lien à la main.');
 });
 $('r-link').addEventListener('focus', (e) => e.target.select());
+$('r-qr-dl').addEventListener('click', () => {
+  $('r-qr').toBlob((blob) => {
+    if (!blob) return toast('Téléchargement impossible.');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'maya-pay-qr.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }, 'image/png');
+});
 
 $('r-new').addEventListener('click', () => {
   fields.a.value = ''; fields.d.value = '';
