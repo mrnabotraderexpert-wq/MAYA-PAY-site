@@ -5,10 +5,11 @@ import { toTelUri, isLikelyMobile, operatorLabel } from './ussd.js';
 import { drawQr } from './qr.js';
 import { setupCart } from './cart.js';
 import { initExpress } from './express.js';
+import { initAccount } from './account.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'mayapay.vendor';
-const views = ['view-desktop', 'view-vendor', 'view-track', 'view-pay', 'view-shop', 'view-orders', 'view-error'];
+const views = ['view-desktop', 'view-vendor', 'view-track', 'view-pay', 'view-shop', 'view-orders', 'view-account', 'view-report', 'view-error'];
 
 // Toutes les données venant du serveur ou d'un lien sont insérées avec textContent, jamais innerHTML.
 
@@ -45,6 +46,7 @@ const store = {
 
 function show(id) {
   views.forEach((v) => ($(v).hidden = v !== id));
+  document.body.classList.toggle('auth-screen', id === 'view-account'); // écran de connexion épuré : sans l'en-tête
   window.scrollTo(0, 0);
   // Application Android : l'espace vendeur est protégé par le verrou du téléphone.
   try { window.MayaNative?.setScreen?.(id); } catch { /* ignoré */ }
@@ -136,13 +138,17 @@ function route() {
   stopPoll();
   stopTrack();
   express.stop();
+  account.touch();
   if (!isLikelyMobile()) { document.title = 'MAYA-PAY – Liens de paiement Orange Money et Moov Money au Mali'; return show('view-desktop'); } // téléphone uniquement
   if (!serverReady()) return invalid();
   const { path, params } = parseHash(location.hash);
   if (path === '/pay') return validId(params.get('i')) ? loadPay(params.get('i')) : invalid();
   if (path === '/express') return validId(params.get('s')) ? express.openShop(params.get('s')) : invalid();
-  if (path === '/commandes') return express.openOrders();
   if (path === '/suivi') return validId(params.get('i')) && validKey(params.get('k')) ? showTrack(params.get('i'), params.get('k')) : invalid();
+  if (path === '/signaler') return account.openReport(params);
+  if (path === '/compte') return account.open();
+  if (account.gated()) return account.open('login'); // « inscription obligatoire » activée par l'administrateur
+  if (path === '/commandes') return express.openOrders();
   showVendor();
 }
 addEventListener('hashchange', route);
@@ -442,7 +448,8 @@ function showVendor() {
 }
 
 const cart = setupCart();
-const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, makeThumb, makeBanner, refreshSub, getPhoto: () => safePhoto(vendorPhoto) });
+const account = initAccount({ store, show, invalid, toast, route });
+const express = initExpress({ store, fields, show, invalid, toast, copyText, fmtDate, setAvatar, makeThumb, makeBanner, refreshSub, getPhoto: () => safePhoto(vendorPhoto), claim: () => account.claimLocalShop(), report: (t) => account.setReportTarget(t) });
 
 function setErrors(errors) {
   for (const k of Object.keys(fields)) {
@@ -1167,7 +1174,7 @@ document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e
 addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 menu.addEventListener('click', (e) => {
   const a = e.target.closest('a[data-go]');
-  if (!a) return;
+  if (!a) { if (e.target.closest('a[href]')) setMenu(false); return; }
   e.preventDefault();
   setMenu(false);
   const go = () => {
@@ -1178,6 +1185,15 @@ menu.addEventListener('click', (e) => {
   };
   if (!location.hash || location.hash === '#/') go();
   else { location.hash = '#/'; setTimeout(go, 200); }
+});
+
+// Signalement depuis la page de paiement : l'identifiant du lien est celui de l'adresse en cours.
+$('pay-report').addEventListener('click', (e) => {
+  e.preventDefault();
+  const id = parseHash(location.hash).params.get('i');
+  if (!validId(id)) return;
+  account.setReportTarget({ kind: 'link', id, name: $('pay-name').textContent });
+  location.hash = `#/signaler?k=link&i=${id}`;
 });
 
 /* ---------- PWA ---------- */
@@ -1197,7 +1213,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-route();
+account.boot().finally(route); // lit d'abord les interrupteurs de l'administrateur (comptes, vérification, signalement)
 
 syncNativeWatch();
 

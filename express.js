@@ -282,10 +282,14 @@ function setupVendor() {
         profileErr = PROFILE_ERR[pe && pe.code] || 'Le profil de la vitrine n’a pas pu être enregistré. Réessayez.';
       }
       ctx.toast(s.id ? 'Vitrine mise à jour.' : 'Vitrine créée.');
+      if (ctx.claim) ctx.claim(); // rattache la vitrine au compte connecté, s'il y en a un
       if (profileErr) { err.textContent = 'Vitrine enregistrée, mais ' + profileErr.charAt(0).toLowerCase() + profileErr.slice(1); $('xp-box').open = true; }
       renderResult();
     } catch (e) {
-      if (e && e.code === 'license_required') {
+      if (e && e.code === 'auth_required') {
+        err.textContent = 'Connectez-vous à votre compte MAYA-PAY pour créer votre vitrine.';
+        location.hash = '#/compte';
+      } else if (e && e.code === 'license_required') {
         err.textContent = 'Votre licence est expirée : abonnez-vous pour utiliser Maya Express. Vos commandes restent consultables.';
         ctx.refreshSub();
         const fold = $('sub-card').querySelector('details.fold');
@@ -330,6 +334,9 @@ function refreshTotal() {
 
 function renderShop() {
   $('s-name').textContent = shop.name;
+  $('s-verified').hidden = !shop.verified;
+  $('s-report').href = '#/signaler?k=shop&i=' + shop.id;
+  $('s-report').onclick = () => { if (ctx.report) ctx.report({ kind: 'shop', id: shop.id, name: shop.name }); };
   ctx.setAvatar($('s-photo'), shop.photo);
   const ban = $('s-banner');
   if (shop.banner) ban.src = shop.banner; else ban.removeAttribute('src');
@@ -403,6 +410,7 @@ export async function openShop(id) {
     ig: socialUrl(o.ig, 'instagram.com'),
     tt: socialUrl(o.tt, 'tiktok.com'),
     open: o.open === true,
+    verified: o.v === true,
     ops: Array.isArray(o.ops) ? o.ops.map(String).filter((x) => OPS[x]) : [],
     products: o.products
       .filter((p) => p && UUID.test(String(p.id)) && Number.isInteger(Number(p.p)) && Number(p.p) >= 1)

@@ -4,14 +4,20 @@ export const serverReady = () => Boolean(CONFIG.supabase?.url && CONFIG.supabase
 export const validId = (id) => /^[0-9a-f]{12}$/.test(String(id ?? ''));
 export const validKey = (k) => /^[0-9a-f]{32}$/.test(String(k ?? ''));
 
+// Jeton du compte connecté (fourni par account.js). Sans compte, les appels restent anonymes comme avant.
+let tokenProvider = null;
+export const setTokenProvider = (fn) => { tokenProvider = fn; };
+
 // Appelle une fonction RPC. En cas d'erreur, le message de la base (ex. « rate_limited ») devient err.code.
 async function rpc(fn, args, timeoutMs = 10000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
+    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.supabase.key };
+    if (tokenProvider) { const t = await tokenProvider(); if (t) headers.Authorization = 'Bearer ' + t; }
     const res = await fetch(`${CONFIG.supabase.url}/rest/v1/rpc/${fn}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: CONFIG.supabase.key },
+      headers,
       body: JSON.stringify(args),
       signal: ctrl.signal,
     });
@@ -84,3 +90,44 @@ export const expressOrders = (id, key) => rpc('mayapay_express_orders', { p_id: 
 export const importBoutique = (slug) => rpc('mayapay_import_boutique', { p_slug: slug });
 // Produits (nom, prix, photo) d'une boutique Boutiki : 30 au maximum. Erreurs JSON : bad_slug, not_found, too_many.
 export const importProduits = (slug) => rpc('mayapay_import_produits', { p_slug: slug });
+
+// ---- Comptes vendeurs (Supabase Auth : e-mail + mot de passe) ----
+// Le mot de passe n'est jamais stocké par ce site : il va directement au service d'authentification (HTTPS).
+async function authCall(path, { method = 'POST', body, token, timeoutMs = 12000 } = {}) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.supabase.key };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch(`${CONFIG.supabase.url}/auth/v1/${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined, signal: ctrl.signal });
+    let data = null;
+    try { data = await res.json(); } catch { /* corps vide */ }
+    if (!res.ok) throw Object.assign(new Error('auth_' + res.status), { status: res.status, code: (data && (data.error_code || data.code)) || 'http_' + res.status });
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+const redir = (u) => (u ? '?redirect_to=' + encodeURIComponent(u) : '');
+export const authSignUp = (email, password, redirectTo) => authCall('signup' + redir(redirectTo), { body: { email, password } });
+export const authSignIn = (email, password) => authCall('token?grant_type=password', { body: { email, password } });
+export const authRefresh = (refreshToken) => authCall('token?grant_type=refresh_token', { body: { refresh_token: refreshToken } });
+export const authRecover = (email, redirectTo) => authCall('recover' + redir(redirectTo), { body: { email } });
+export const authSetPassword = (token, password) => authCall('user', { method: 'PUT', token, body: { password } });
+export const authUser = (token) => authCall('user', { method: 'GET', token });
+export const authSignOut = (token) => authCall('logout', { token });
+
+// ---- Confiance : interrupteurs publics, profil vendeur, vérification NINA, signalement ----
+export const flagsGet = () => rpc('mayapay_flags', {}, 6000);
+export const myProfile = () => rpc('mayapay_my_profile', {});
+export const verifyRequest = (name, phone, nina) => rpc('mayapay_verify_request', { p_name: name, p_phone: phone || null, p_nina: nina });
+export const expressClaim = (id, key) => rpc('mayapay_express_claim', { p_id: id, p_key: key });
+export const reportSend = (r) => rpc('mayapay_report', { p_kind: r.kind, p_id: r.id, p_reason: r.reason, p_details: r.details, p_contact: r.contact || null, p_order: r.order || null });
+
+// ---- Administration : confiance et sécurité (mot de passe admin vérifié par le serveur à chaque appel) ----
+export const adminTrustGet = (pass) => rpc('mayapay_admin_trust_get', { p_pass: pass });
+export const adminTrustSet = (pass, t) => rpc('mayapay_admin_trust_set', { p_pass: pass, p_auth: t.auth, p_required: t.required, p_kyc: t.kyc, p_reports: t.reports });
+export const adminVendors = (pass, status, q) => rpc('mayapay_admin_vendors', { p_pass: pass, p_status: status || '', p_q: q || '' });
+export const adminVendorSet = (pass, user, action, note) => rpc('mayapay_admin_vendor_set', { p_pass: pass, p_user: user, p_action: action, p_note: note || null });
+export const adminReports = (pass, status) => rpc('mayapay_admin_reports', { p_pass: pass, p_status: status || '' });
+export const adminReportSet = (pass, id, status, note) => rpc('mayapay_admin_report_set', { p_pass: pass, p_id: id, p_status: status, p_note: note || null });

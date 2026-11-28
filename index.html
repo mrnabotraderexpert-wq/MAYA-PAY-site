@@ -88,6 +88,7 @@
     <a href="#/" data-go="sub-card">Mon abonnement</a>
     <a href="#/" data-go="express-card">Maya Express</a>
     <a href="#/" data-go="recent-box">Mes liens récents</a>
+    <a id="menu-account" href="#/compte" hidden>Connexion</a>
     <button id="install" class="menu-install" type="button" hidden>Installer l'application</button>
   </nav>
 
@@ -480,6 +481,7 @@
         <div id="verdict" class="verdict" role="status" aria-live="polite" hidden></div>
         <a id="sub-back" class="btn secondary block" href="#" hidden>Retour à mon espace vendeur</a>
       </article>
+          <p id="pay-report-row" class="report-row" hidden><a id="pay-report" href="#/signaler"><svg class="ic"><use href="#i-alert"/></svg>Un problème avec ce vendeur ? Signaler</a></p>
     </section>
 
     <!-- Lien invalide -->
@@ -490,6 +492,7 @@
         <p class="muted">Maya Express</p>
         <img id="s-photo" class="avatar big-avatar" alt="" hidden>
         <h1 id="s-name"></h1>
+        <p id="s-verified" class="verified" hidden><svg class="ic"><use href="#i-shield"/></svg>Vendeur vérifié</p>
         <p id="s-slogan" class="shop-slogan" hidden></p>
         <p id="s-city" class="muted" hidden></p>
         <div id="s-links" class="shop-links" hidden></div>
@@ -508,6 +511,7 @@
         <p id="s-err" class="err" role="alert"></p>
         <button id="s-order" class="btn primary block big" type="button" disabled><svg class="ic"><use href="#i-arrow"/></svg>Commander et payer</button>
         <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>Vous payez par Orange Money ou Moov Money, directement vers le compte du vendeur : l’argent ne passe jamais par MAYA-PAY. Pas de paiement à la livraison. Votre nom et votre numéro sont transmis au vendeur pour la commande (conservés 90 jours).</span></p>
+        <p id="s-report-row" class="report-row" hidden><a id="s-report" href="#/signaler"><svg class="ic"><use href="#i-alert"/></svg>Signaler ce vendeur</a></p>
       </article>
     </section>
 
@@ -520,6 +524,87 @@
         <ul id="o-list" class="proofs orders"></ul>
         <p class="fine"><svg class="ic"><use href="#i-alert"/></svg><span>« Payée » signifie que le SMS du client correspond au montant et à votre numéro (vérification automatique). Pour un montant important, contrôlez aussi le solde de votre compte avant de livrer.</span></p>
         <a class="btn ghost block" href="./">Retour</a>
+      </article>
+    </section>
+
+    <!-- Compte vendeur : connexion, inscription, mot de passe oublié, puis statut du vendeur -->
+    <section id="view-account" hidden>
+      <article class="auth">
+        <a class="auth-logo" href="./" aria-label="MAYA-PAY, accueil"><img src="logo.png" width="280" height="55" alt="MAYA-PAY"></a>
+        <div id="ac-form-box">
+          <form id="ac-form" class="auth-form" novalidate>
+            <h1 id="ac-title">Connexion</h1>
+            <div id="ac-f-email" class="field"><label for="ac-email">E-mail</label><input id="ac-email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="vous@exemple.com"></div>
+            <div id="ac-f-pass" class="field"><label for="ac-pass">Mot de passe</label><input id="ac-pass" type="password" autocomplete="current-password" maxlength="72" placeholder="Votre mot de passe"></div>
+            <div id="ac-f-pass2" class="field" hidden><label for="ac-pass2">Confirmer le mot de passe</label><input id="ac-pass2" type="password" autocomplete="new-password" maxlength="72" placeholder="Répétez le mot de passe"></div>
+            <p id="ac-err" class="err" role="alert"></p>
+            <p id="ac-note" class="auth-note" role="status" hidden></p>
+            <button id="ac-submit" class="btn primary block big" type="submit">Se connecter</button>
+          </form>
+          <p class="auth-secure"><svg class="ic"><use href="#i-lock"/></svg><span><strong>Sécurité :</strong> MAYA-PAY ne vous demandera jamais votre code PIN Orange Money ou Moov Money.</span></p>
+          <p id="ac-links" class="auth-links"></p>
+        </div>
+        <div id="ac-profile" class="auth-profile" hidden>
+          <h1>Mon compte</h1>
+          <p id="ac-email-show" class="auth-email"></p>
+          <p><span id="ac-status" class="badge">…</span></p>
+          <p id="ac-status-text" class="hint"></p>
+          <div id="ac-verify" class="auth-verify" hidden>
+            <h2>Vérifier mon identité</h2>
+            <div class="field"><label for="ac-v-name">Nom complet</label><input id="ac-v-name" type="text" maxlength="60" autocomplete="name" placeholder="Prénom et nom"></div>
+            <div class="field"><label for="ac-v-phone">Téléphone (facultatif)</label><input id="ac-v-phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="76 12 34 56"></div>
+            <div class="field"><label for="ac-v-nina">Numéro NINA</label><input id="ac-v-nina" type="text" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Numéro d’identification nationale"></div>
+            <p class="fine"><svg class="ic"><use href="#i-lock"/></svg><span>Votre NINA est transformé en empreinte irréversible : seuls ses 4 derniers caractères restent lisibles. Il sert uniquement à vérifier votre identité et n’est jamais affiché.</span></p>
+            <p id="ac-v-err" class="err" role="alert"></p>
+            <button id="ac-v-send" class="btn primary block" type="button">Envoyer pour vérification</button>
+          </div>
+          <div id="ac-shops-box" hidden><h2>Mes vitrines</h2><ul id="ac-shops" class="auth-shops"></ul></div>
+          <p class="fine"><svg class="ic"><use href="#i-shield"/></svg><span>Dans l’application Android, l’espace vendeur est aussi protégé par le verrou de votre téléphone (empreinte, visage ou code).</span></p>
+          <a class="btn primary block" href="./">Mon espace vendeur</a>
+          <button id="ac-logout" class="btn ghost block" type="button">Se déconnecter</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Signaler un vendeur -->
+    <section id="view-report" hidden>
+      <article class="card pay-card">
+        <div id="r-form">
+          <p class="muted">Signalement</p>
+          <h1>Signaler un vendeur</h1>
+          <p id="r-vendor" class="muted" hidden></p>
+          <div class="field">
+            <label for="r-reason">Que s’est-il passé ?</label>
+            <select id="r-reason">
+              <option value="not_delivered">J’ai payé mais je n’ai pas reçu ma commande</option>
+              <option value="not_as_described">Le produit ne correspond pas à l’annonce</option>
+              <option value="scam">Arnaque ou faux vendeur</option>
+              <option value="harassment">Harcèlement ou comportement abusif</option>
+              <option value="other">Autre problème</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r-details">Détails <span class="opt">(10 à 500 caractères)</span></label>
+            <textarea id="r-details" rows="4" maxlength="500" placeholder="Que s’est-il passé ? Quand ? Quel montant ?"></textarea>
+          </div>
+          <div class="field">
+            <label for="r-contact">Votre téléphone <span class="opt">(facultatif)</span></label>
+            <input id="r-contact" type="tel" inputmode="tel" maxlength="30" autocomplete="tel-national" placeholder="Pour vous recontacter">
+          </div>
+          <div class="field">
+            <label for="r-order">Référence ou date de la commande <span class="opt">(facultatif)</span></label>
+            <input id="r-order" type="text" maxlength="40" autocomplete="off">
+          </div>
+          <p id="r-err" class="err" role="alert"></p>
+          <button id="r-send" class="btn primary block big" type="button">Envoyer le signalement</button>
+          <p class="fine"><svg class="ic"><use href="#i-lock"/></svg><span>Seule l’équipe MAYA-PAY lit ce message ; le vendeur ne voit pas qui l’a envoyé. MAYA-PAY ne rembourse pas : en cas de paiement non livré, contactez aussi votre opérateur.</span></p>
+          <a id="r-back" class="btn ghost block" href="./">Annuler</a>
+        </div>
+        <div id="r-done" hidden>
+          <h1>Merci, signalement reçu</h1>
+          <p class="hint">L’équipe MAYA-PAY va l’examiner. Plusieurs signalements concordants peuvent entraîner la suspension du vendeur.</p>
+          <a id="r-back2" class="btn primary block" href="./">Retour</a>
+        </div>
       </article>
     </section>
 

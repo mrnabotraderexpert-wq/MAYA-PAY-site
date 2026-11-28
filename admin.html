@@ -143,6 +143,62 @@
         </details>
       </article>
 
+      <article id="trust-card" class="card" hidden>
+        <details class="fold" open>
+          <summary><h2>Confiance et sécurité <span id="trust-badge" class="badge warn" hidden></span></h2></summary>
+          <div class="stats" aria-label="Résumé comptes et signalements">
+            <div class="stat"><strong id="t-accounts">–</strong><span>Comptes vendeurs</span></div>
+            <div class="stat"><strong id="t-verified">–</strong><span>Vendeurs vérifiés</span></div>
+            <div class="stat"><strong id="t-pending">–</strong><span>Vérifications à traiter</span></div>
+            <div class="stat"><strong id="t-newreports">–</strong><span>Signalements nouveaux</span></div>
+          </div>
+          <h3 class="sub-head">Interrupteurs : effet immédiat, sans déploiement</h3>
+          <div class="switch-row">
+            <p><strong>Comptes vendeurs</strong><small>Inscription, connexion et mot de passe oublié (e-mail) sur le site et l'application.</small></p>
+            <label class="switch" aria-label="Activer les comptes vendeurs"><input id="t-auth" type="checkbox"><i></i></label>
+          </div>
+          <div class="switch-row" style="margin-top:8px">
+            <p><strong>Inscription obligatoire</strong><small>L'espace vendeur et la création de vitrine demandent un compte. Les pages des clients (paiement, vitrines) restent publiques.</small></p>
+            <label class="switch" aria-label="Rendre l'inscription obligatoire"><input id="t-required" type="checkbox"><i></i></label>
+          </div>
+          <div class="switch-row" style="margin-top:8px">
+            <p><strong>Vérification d'identité (NINA)</strong><small>Les vendeurs peuvent demander le badge « Vendeur vérifié » ; vous acceptez ou refusez ci-dessous.</small></p>
+            <label class="switch" aria-label="Activer la vérification NINA"><input id="t-kyc" type="checkbox"><i></i></label>
+          </div>
+          <div class="switch-row" style="margin-top:8px">
+            <p><strong>Signalement des vendeurs</strong><small>Bouton « Signaler ce vendeur » sur les pages de paiement et les vitrines.</small></p>
+            <label class="switch" aria-label="Activer le signalement des vendeurs"><input id="t-reports" type="checkbox"><i></i></label>
+          </div>
+          <p id="trust-msg" class="msg" role="status"></p>
+
+          <h3 class="sub-head">Vendeurs</h3>
+          <div class="searchrow">
+            <select id="t-v-status" aria-label="Filtrer les vendeurs" style="height:48px;padding:0 10px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+              <option value="pending">À vérifier</option>
+              <option value="">Tous</option>
+              <option value="verified">Vérifiés</option>
+              <option value="rejected">Refusés</option>
+              <option value="suspended">Suspendus</option>
+              <option value="none">Sans demande</option>
+            </select>
+            <input id="t-v-q" type="text" placeholder="E-mail ou nom" autocomplete="off" aria-label="Rechercher un vendeur">
+          </div>
+          <ul id="t-vendors" class="list"></ul>
+
+          <h3 class="sub-head">Signalements</h3>
+          <div class="searchrow">
+            <select id="t-r-status" aria-label="Filtrer les signalements" style="height:48px;padding:0 10px;border:1px solid #CFC8BE;border-radius:12px;font:inherit">
+              <option value="new">Nouveaux</option>
+              <option value="reviewing">En cours</option>
+              <option value="resolved">Traités</option>
+              <option value="dismissed">Rejetés</option>
+              <option value="">Tous</option>
+            </select>
+          </div>
+          <ul id="t-rlist" class="list"></ul>
+        </details>
+      </article>
+
       <article id="ads-card" class="card" hidden>
         <details class="fold">
           <summary><h2>Publicité de l'accueil</h2></summary>
@@ -220,5 +276,6 @@
   <script type="module" src="admin.js"></script>
   <script type="module" src="admin-support.js"></script>
   <script type="module" src="admin-ads.js"></script>
+  <script type="module" src="admin-trust.js"></script>
 </body>
 </html>

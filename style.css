@@ -551,3 +551,38 @@ input:focus, select:focus { border-color: var(--navy); outline: 3px solid rgba(2
 .fold[open] > summary { margin-bottom: 10px; }
 .fold-in { margin-top: 12px; }
 @media (prefers-reduced-motion: reduce) { .fold > summary::after { transition: none; } }
+
+/* Comptes : écran de connexion épuré (logo, champs, encart sécurité, lien d'aide) */
+.auth-screen .top, .auth-screen #menu { display: none; }
+.auth { max-width: 440px; margin: 0 auto; padding: 8px 0 24px; text-align: center; }
+.auth-logo { display: block; margin: 8px auto 22px; }
+.auth-logo img { display: block; width: min(280px, 80%); height: auto; margin: 0 auto; }
+.auth-form { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px 18px; box-shadow: 0 8px 28px rgba(10, 31, 77, .08); text-align: left; }
+.auth-form h1, .auth-profile h1 { margin: 0 0 14px; font-size: 1.35rem; color: var(--navy); text-align: center; }
+.auth-form .field { margin: 0 0 12px; }
+.auth input[type=email], .auth input[type=password], .auth input[type=text], .auth input[type=tel] { width: 100%; height: 56px; padding: 0 16px; border: 2px solid #D3DCF1; border-radius: 16px; font: inherit; font-size: 1.02rem; color: var(--navy); background: #fff; }
+.auth input:focus { border-color: var(--orange); outline: none; }
+.auth .btn.block { width: 100%; }
+.auth-note { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: #D5EFE3; color: #0F5C3E; font-weight: 600; }
+.auth-secure { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0 0; padding: 12px 14px; border-radius: 14px; background: #EEF3FF; color: var(--navy); font-size: .875rem; text-align: left; }
+.auth-secure .ic { flex: none; width: 20px; height: 20px; color: var(--orange); }
+.auth-links { margin: 16px 0 0; font-size: .9375rem; }
+.auth-link { background: none; border: 0; padding: 10px 4px; font: inherit; font-weight: 700; color: var(--navy); text-decoration: underline; cursor: pointer; min-height: 44px; }
+.auth-profile { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px; box-shadow: 0 8px 28px rgba(10, 31, 77, .08); text-align: left; }
+.auth-profile h2 { font-size: 1.05rem; margin: 18px 0 8px; }
+.auth-profile .btn { margin-top: 10px; }
+.auth-email { margin: 0 0 8px; text-align: center; color: var(--mute); overflow-wrap: anywhere; }
+.auth-profile > p:has(#ac-status) { text-align: center; margin: 0 0 6px; }
+.auth-shops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.auth-shops a { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.badge.bad { background: #FDECEA; color: var(--bad); }
+
+/* Signalement et badge « vérifié » */
+.report-row { margin: 14px 0 0; text-align: center; font-size: .875rem; }
+.report-row a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--mute); text-decoration: underline; }
+.report-row .ic { width: 16px; height: 16px; }
+.verified { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; padding: 4px 12px; border-radius: 999px; background: #D5EFE3; color: #0F5C3E; font-size: .8125rem; font-weight: 700; }
+.verified .ic { width: 16px; height: 16px; }
+#view-report textarea { width: 100%; padding: 12px 14px; border: 2px solid #D3DCF1; border-radius: 16px; font: inherit; font-size: 1.02rem; color: var(--navy); resize: vertical; }
+#view-report .field { text-align: left; margin: 12px 0 0; }
+#view-report #r-send { margin-top: 14px; }
